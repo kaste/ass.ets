@@ -130,6 +130,24 @@ def uglifyjs(files, bundle):
 
 		yield stdout
 
+@worker
+def lessify(files, bundle):
+	args = ['lessc', '-']
+	for file in files:
+		proc = subprocess.Popen(
+			args,
+			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+			shell=True)
+		stdout, stderr = proc.communicate(file)
+
+		if proc.returncode != 0:
+			raise FilterError(('lessc: subprocess had error: stderr=%s, '+
+                               'stdout=%s, returncode=%s') % (
+                                    stderr, stdout, proc.returncode))
+
+		yield stdout
+
+
 def _get_pipe_for(ext, bundle):
 	return bundles.Pipe( bundle.filters[ext][bundle.mode] )
 

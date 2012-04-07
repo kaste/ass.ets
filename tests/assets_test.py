@@ -281,3 +281,12 @@ class BundleTest(unittest.TestCase):
 							development=[ets.f.automatic])
 
 		assert bundle.apply() == ['JS', 'CSS']
+
+class FiltersTest(unittest.TestCase):
+	def testLessify(self):
+
+		less = '@base: #f938ab;p{color:@base;}'
+
+		# lessify doesn't use any bundle-stuff
+		# the output is actually beautified by lessc
+		assert [less] | f.lessify(None) | list == ['p {\n  color: #f938ab;\n}\n']
