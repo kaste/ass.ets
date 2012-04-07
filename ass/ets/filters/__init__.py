@@ -2,7 +2,8 @@ import os
 import pickle, hashlib
 from pipeable import producer, consumer, worker
 
-import bundles
+import ass.ets 
+import ass.ets.bundles
 
 class FilterError(Exception): pass
 
@@ -31,7 +32,7 @@ def echo(items, bundle):
 @worker
 def as_is(files, bundle):
 	for file in files:
-		if isinstance(file, bundles.Bundle):
+		if isinstance(file, ass.ets.Bundle):
 			for f in file.apply():
 				yield f
 		else:
@@ -64,7 +65,7 @@ def store_manifest(files, bundle):
 @worker
 def read(items, bundle):
 	for item in items:
-		if isinstance(item, bundles.Bundle):
+		if isinstance(item, ass.ets.Bundle):
 			for content in item.apply():
 				yield content
 		else:
@@ -147,17 +148,13 @@ def lessify(files, bundle):
 
 		yield stdout
 
-@worker
-def cssminify(files, bundle):
-	import cssmin
-
-	for file in files:
-		yield cssmin.cssmin(file)
-
-
+try:
+	from cssminify import *
+except ImportError:
+	pass
 
 def _get_pipe_for(ext, bundle):
-	return bundles.Pipe( bundle.filters[ext][bundle.mode] )
+	return ass.ets.bundles.Pipe( bundle.filters[ext][bundle.mode] )
 
 @worker
 def automatic(files, bundle):

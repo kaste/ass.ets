@@ -1,6 +1,7 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
+from ass.ets import filters
 from ass import ets
 from ass.ets import filters as f
 import os
@@ -290,3 +291,10 @@ class FiltersTest(unittest.TestCase):
 		# lessify doesn't use any bundle-stuff
 		# the output is actually beautified by lessc
 		assert [less] | f.lessify(None) | list == ['p {\n  color: #f938ab;\n}\n']
+
+	def testCssmin(self):
+
+		css = 'p\n{color:#aaa;}'
+
+		assert [css] | f.cssminify(None) | list == ['p{color:#aaa}']
+

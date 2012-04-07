@@ -10,7 +10,7 @@ setup(
 	author_email="herr.kaste@gmail.com",
 	packages=find_packages(exclude=['tests']),
 	install_requires=[],
-	tests_require=['pytest', 'unittest2'],
+	tests_require=['pytest', 'unittest2', 'cssmin'],
 	classifiers= [
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
