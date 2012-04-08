@@ -112,7 +112,7 @@ class BundleTest(unittest.TestCase):
 						mode='development',
 						development=ets.f.as_is)
 
-		assert bundle.urls() == [os.path.join('/static', 'a.js'), os.path.join('/static', 'b.js')]
+		assert bundle.urls() == ['/static/a.js', '/static/b.js']
 
 	def testGivesUrlsFromManifest(self):
 		bundle = ets.Bundle(name='jslib', 
@@ -122,7 +122,7 @@ class BundleTest(unittest.TestCase):
 						manifest=dict(jslib=['generated.js']),
 						development=ets.f.use_manifest)
 
-		assert bundle.urls() == [os.path.join('/static', 'generated.js')]
+		assert bundle.urls() == ['/static/generated.js']
 
 
 	def testMergeFiles(self):
@@ -223,8 +223,7 @@ class BundleTest(unittest.TestCase):
 						mode='development', 
 						development=ets.f.as_is)
 
-		assert bundle.urls() == [os.path.join('/static', 'a.js'), 
-								 os.path.join('/static', 'b.js')]
+		assert bundle.urls() == ['/static/a.js', '/static/b.js']
 
 	def testBuildWithNestedBundles(self):
 		import __builtin__, pickle
