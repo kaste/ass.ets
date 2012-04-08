@@ -1,5 +1,5 @@
 import os
-import pickle, hashlib
+import hashlib
 from pipeable import producer, consumer, worker
 
 import ass.ets 
