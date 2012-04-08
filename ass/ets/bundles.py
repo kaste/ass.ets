@@ -1,4 +1,8 @@
-import os, pickle 
+import os
+try:
+	import yaml as serializer
+except ImportError:
+	import pickle as serializer
 
 from options import Option, Options, Undefined, dict_getter
 import filters as f
@@ -14,8 +18,9 @@ def manifest_setter(name):
 	return setter
 
 class Manifest(object):
-	def __init__(self, filename):
+	def __init__(self, filename, serializer=serializer):
 		self.filename = filename
+		self.serializer = serializer
 		self._manifest = None
 
 	@property
@@ -23,7 +28,7 @@ class Manifest(object):
 		if self._manifest is None:
 			try:
 				with open(self.filename) as f:
-					self._manifest = pickle.load(f)
+					self._manifest = serializer.load(f)
 			except:
 				self._manifest = {}
 		return self._manifest
@@ -37,7 +42,7 @@ class Manifest(object):
 
 	def _save_manifest(self):
 		with open(self.filename, 'wb') as f:
-			pickle.dump(self.manifest, f)
+			serializer.dump(self.manifest, f)
 
 
 
