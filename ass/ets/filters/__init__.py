@@ -16,7 +16,7 @@ def local_path(files, bundle):
 @worker
 def remote_path(files, bundle):
 	for file in files:
-		yield os.path.join(bundle.map_to, file)
+		yield '/'.join([bundle.map_to, file])
 
 @worker
 def translate_path(files, bundle):
