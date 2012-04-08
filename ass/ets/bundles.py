@@ -68,21 +68,24 @@ class Environment(Options):
 	manifest = Option(setter=manifest_setter)
 	filters = Option(getter=dict_getter)
 
-class Assets(Environment):
-	pass
-
-class Bundle(Assets):
-	name = Option()
+	# because of the options-inheritance we define these here, even though
+	# we might only need them way down for the bundles
 	production = Option()
 	development = Option()#getter=pipelize_getter)
 	build_ = Option()
 
-
-	def __init__(self, files=[], env=None, **kw):
-		self.files = files
+class Assets(Environment):
+	def __init__(self, env=None, **kw):
 		self.env = env
 		if env is not None:
 			self.parent = env
+
+class Bundle(Assets):
+	name = Option()
+
+	def __init__(self, files=[], **kw):
+		super(Bundle, self).__init__(**kw)
+		self.files = files
 
 	def urls(self, urlize=f.remote_path):
 		return self.apply(append=urlize)
