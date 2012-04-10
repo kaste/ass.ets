@@ -282,6 +282,32 @@ class BundleTest(unittest.TestCase):
 
 		assert bundle.apply() == ['JS', 'CSS']
 
+class AssetsTest(unittest.TestCase):
+	def testAssetsTakeBundlesKeyword(self):
+		bundle = ets.Bundle()
+		assets = ets.Assets(bundles={'app': bundle})
+
+		assert assets.bundles.app == bundle
+
+	def testAssetsAssignNameToBundleIfNoneIsGiven(self):
+		bundle = ets.Bundle()
+		assets = ets.Assets(bundles={'app': bundle})
+
+		assert bundle.name == 'app'	
+
+	def testAssignSelfToBundlesEnvIfNoneIsGiven(self):
+		bundle = ets.Bundle()
+		assets = ets.Assets(bundles={'app': bundle})
+
+		assert bundle.env == assets
+
+	def testIterateOverBundles(self):
+		a = ets.Bundle()
+		b = ets.Bundle()
+		assets = ets.Assets(bundles={'app': a, 'lib': b})
+
+		assert [a, b] == [bundle for bundle in assets.bundles]		
+
 class FiltersTest(unittest.TestCase):
 	def testLessify(self):
 

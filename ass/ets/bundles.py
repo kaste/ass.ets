@@ -6,6 +6,7 @@ except ImportError:
 
 from options import Option, Options, Undefined, dict_getter
 import filters as f
+import dicts
 
 def manifest_setter(name):
 	def setter(self, manifest):
@@ -66,7 +67,7 @@ class Pipe(list):
 
 		return (p | _finally) if _finally else p
 
-class Environment(Options):
+class CommonOptions(Options):
 	map_from = Option()
 	map_to = Option(default='/')
 	mode = Option()
@@ -79,13 +80,57 @@ class Environment(Options):
 	development = Option()#getter=pipelize_getter)
 	build_ = Option()
 
-class Assets(Environment):
 	def __init__(self, env=None, **kw):
-		self.env = env
 		if env is not None:
-			self.parent = env
+			self.env = env
 
-class Bundle(Assets):
+	@property
+	def parent(self):
+		return self.env
+
+class bundlesdict(dicts.ordered, dicts.dotted):
+	__slots__ = ('data', '_env')
+	def __init__(self, data={}, env=None):
+		self._env = env
+		super(bundlesdict, self).__init__(data)
+
+	def __setitem__(self, key, bundle):
+		try:
+			getattr(bundle, 'name')
+		except:
+			bundle.name = key
+		try:
+			getattr(bundle, 'env')
+		except:
+			bundle.env = self._env
+
+		super(bundlesdict, self).__setitem__(key, bundle)
+
+	def __iter__(self):
+		return self.itervalues()
+		
+
+class Environment(CommonOptions): pass
+
+class Assets(CommonOptions):
+	def __init__(self, bundles={}, **kw):
+		super(Assets, self).__init__(**kw)
+		self.bundles = bundles
+
+	@property
+	def bundles(self):
+		return self._bundles
+
+	@bundles.setter
+	def bundles(self, new_value):
+		if isinstance(new_value, dict):
+			new_value = bundlesdict(new_value, env=self)
+		self._bundles = new_value
+
+	def __iter__(self):
+		return self.bundles.itervalues()
+
+class Bundle(CommonOptions):
 	name = Option()
 
 	def __init__(self, files=[], **kw):
