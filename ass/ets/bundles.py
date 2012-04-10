@@ -1,4 +1,5 @@
-import os
+import os, warnings
+
 try:
 	import yaml as serializer
 except ImportError:
@@ -167,7 +168,10 @@ class Bundle(CommonOptions):
 
 		# return p | list 
 
-	def build(self, mode='build_', localize=f.local_path):
+	def build(self, mode=None, localize=f.local_path):
+		if mode:
+			warnings.warn('Because of the way nested bundles are built, passing a mode to build() might not work as you might expect.')
+
 		return self.apply(mode=mode, append=localize)
 
 		# pipe = getattr(self, mode)

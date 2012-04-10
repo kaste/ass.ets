@@ -182,7 +182,7 @@ class BundleTest(unittest.TestCase):
 		a1 = os.path.join(os.path.dirname(__file__), 'a1-43379278.js')
 		
 		bundle = ets.Bundle(files=['a.js'], map_from=os.path.dirname(__file__), map_to='/static', 
-						mode='development',
+						mode='build_',
 						build_=[ets.f.read, ets.f.merge, 
 									 ets.f.uglifyjs, 
 									 ets.f.store_as('a1-%(version)s.js')]
@@ -209,7 +209,7 @@ class BundleTest(unittest.TestCase):
 						development=[ets.f.store_manifest]
 							)
 		
-		bundle.build('development')
+		bundle.build()
 		assert manifest['jsall'] == ['a.js']
 
 	def testUrlsWithNestedBundles(self):
@@ -253,7 +253,7 @@ class BundleTest(unittest.TestCase):
 		bundle = ets.Bundle(files=[nested_bundle, 'b.js'], env=env,
 						development=[ets.f.read, ets.f.merge, store])
 
-		assert bundle.build('development') == [os.path.join('/', 'ab.js')]
+		assert bundle.build() == [os.path.join('/', 'ab.js')]
 
 		unstub()
 
