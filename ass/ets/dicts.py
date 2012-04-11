@@ -1,5 +1,59 @@
 
 
+class listdicthybrid(object):
+	"""Holds a list of objects. Provides some limited dict-like access."""
+	
+	def __init__(self, data=[], key_func=None):
+		self.data = []
+		self._key_func_ = key_func
+		if isinstance(data, dict):
+			self.update(data)
+		else:
+			self.extend(data)
+
+	def extend(self, iter):
+		for i in iter:
+			self.append(i)
+
+	def append(self, item):
+		self.data.append( item )
+
+	def update(self, d):
+		for k, v in d.iteritems():
+			self[k] = v
+
+	def _index_of(self, key):
+		for i, v in enumerate(self.data):
+			if self._key_func_(v) == key:
+				return i
+		else:
+			raise KeyError
+		
+	def __getitem__(self, key):
+		try:
+			i = self._index_of(key)
+		except KeyError:
+			raise
+		return self.data[i]
+
+	def __setitem__(self, key, bundle):
+		try:
+			i = self._index_of(key)
+		except KeyError:
+			return self.append( bundle )
+		self.data[i] = bundle
+
+	def __delitem__(self, key):
+		try:
+			i = self._index_of(key)
+		except KeyError:
+			raise IndexError
+		self.data.pop(i)
+
+	def __iter__(self):
+		return iter(self.data)
+		
+
 class ordered(object):
 	"""Naive implementaion of an ordered dict."""
 	def __init__(self, data={}):

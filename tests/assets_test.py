@@ -306,7 +306,34 @@ class AssetsTest(unittest.TestCase):
 		b = ets.Bundle()
 		assets = ets.Assets(bundles={'app': a, 'lib': b})
 
-		assert [a, b] == [bundle for bundle in assets.bundles]		
+		assert [a, b] == [bundle for bundle in assets.bundles]	
+
+	def testAssignListToBundles(self):
+		a = ets.Bundle()
+		assets = ets.Assets(bundles=[a])
+
+		assert [a] == [bundle for bundle in assets.bundles]
+
+	def testDictLikeAccessToAssignedBundle(self):
+		a = ets.Bundle(name='app')
+		assets = ets.Assets(bundles=[a])
+
+		assert assets.bundles['app'] == a
+
+	def testDottedAccessToAssignedBundle(self):
+		a = ets.Bundle(name='app')
+		assets = ets.Assets(bundles=[a])
+
+		assert assets.bundles.app == a
+
+	def testAssignedBundlesGetsHisEnvSet(self):
+		a = ets.Bundle(name='app')
+		assets = ets.Assets(bundles=[a])
+
+		assert a.env == assets
+
+
+
 
 class FiltersTest(unittest.TestCase):
 	def testLessify(self):

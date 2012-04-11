@@ -1,4 +1,4 @@
-import os, warnings
+import os, warnings, operator
 
 try:
 	import yaml as serializer
@@ -89,32 +89,38 @@ class CommonOptions(Options):
 	def parent(self):
 		return self.env
 
-class bundlesdict(dicts.ordered, dicts.dotted):
-	__slots__ = ('data', '_env')
-	def __init__(self, data={}, env=None):
-		self._env = env
-		super(bundlesdict, self).__init__(data)
 
-	def __setitem__(self, key, bundle):
-		try:
-			getattr(bundle, 'name')
-		except:
-			bundle.name = key
+class bundlesdict(dicts.listdicthybrid, dicts.dotted):
+	__slots__ = ('data', '_env', '_key_func_')
+
+	def __init__(self, data=[], env=None):
+		self._env = env
+		super(bundlesdict, self).__init__(data, key_func=operator.attrgetter('name'))
+
+	def _prepare_bundle(self, bundle, key):
+		if key is not None:
+			try:
+				getattr(bundle, 'name')
+			except:
+				bundle.name = key
 		try:
 			getattr(bundle, 'env')
 		except:
 			bundle.env = self._env
 
-		super(bundlesdict, self).__setitem__(key, bundle)
+	def append(self, item):
+		self._prepare_bundle(item, None)
+		super(bundlesdict, self).append(item)
 
-	def __iter__(self):
-		return self.itervalues()
-		
+	def __setitem__(self, key, value):
+		self._prepare_bundle(value, key)
+		super(bundlesdict, self).__setitem__(key, value)
+
 
 class Environment(CommonOptions): pass
 
 class Assets(CommonOptions):
-	def __init__(self, bundles={}, **kw):
+	def __init__(self, bundles=[], **kw):
 		super(Assets, self).__init__(**kw)
 		self.bundles = bundles
 
@@ -124,7 +130,7 @@ class Assets(CommonOptions):
 
 	@bundles.setter
 	def bundles(self, new_value):
-		if isinstance(new_value, dict):
+		if not isinstance(new_value, bundlesdict):
 			new_value = bundlesdict(new_value, env=self)
 		self._bundles = new_value
 
