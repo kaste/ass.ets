@@ -114,3 +114,22 @@ Some last things; if your nesting bundles, then bundle.env gets automatically se
 
 	all_styles.assets.less_style.urls()
 
+If you often write this:
+	
+	[read, merge, uglifyjs, store_as('...'), store_manifest]
+
+You could instead write something like this: 
+
+	process_js = (read, merge, uglifyjs)
+	build_ = process_js + (store_as('...'), store_manifest)
+
+OR
+	
+	def process_js_and_store(fn):
+		return [read, merge, uglifyjs, store_as(fn), store_manifest]
+
+A filter that combines other filters by the way looks rather awkward:
+
+	@worker
+	def read_and_merge(items, bundle):
+		return items | read(bundle) | merge(bundle)
