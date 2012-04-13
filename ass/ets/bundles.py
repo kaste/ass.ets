@@ -90,12 +90,12 @@ class CommonOptions(Options):
 		return self.env
 
 
-class bundlesdict(dicts.listdicthybrid, dicts.dotted):
+class bundleslist(dicts.listdicthybrid, dicts.dotted):
 	__slots__ = ('data', '_env', '_key_func_')
 
 	def __init__(self, data=[], env=None):
 		self._env = env
-		super(bundlesdict, self).__init__(data, key_func=operator.attrgetter('name'))
+		super(bundleslist, self).__init__(data, key_func=operator.attrgetter('name'))
 
 	def _prepare_bundle(self, bundle, key):
 		if key is not None:
@@ -110,11 +110,28 @@ class bundlesdict(dicts.listdicthybrid, dicts.dotted):
 
 	def append(self, item):
 		self._prepare_bundle(item, None)
-		super(bundlesdict, self).append(item)
+		super(bundleslist, self).append(item)
 
 	def __setitem__(self, key, value):
 		self._prepare_bundle(value, key)
-		super(bundlesdict, self).__setitem__(key, value)
+		super(bundleslist, self).__setitem__(key, value)
+
+class assetslist(bundleslist):
+	#assets can be either just a path or a bundle 
+	def _prepare_bundle(self, bundle, key):
+		if not isinstance(bundle, Bundle):
+			return
+		super(assetslist, self)._prepare_bundle(bundle, key)
+
+	def _index_of(self, key):
+		for i, v in enumerate(self.data):
+			try:
+				if self._key_func_(v) == key:
+					return i
+			except AttributeError:
+				pass
+		else:
+			raise KeyError
 
 
 class Environment(CommonOptions): pass
@@ -130,8 +147,8 @@ class Assets(CommonOptions):
 
 	@bundles.setter
 	def bundles(self, new_value):
-		if not isinstance(new_value, bundlesdict):
-			new_value = bundlesdict(new_value, env=self)
+		if not isinstance(new_value, bundleslist):
+			new_value = bundleslist(new_value, env=self)
 		self._bundles = new_value
 
 	def __iter__(self):
@@ -145,6 +162,18 @@ class Bundle(CommonOptions):
 		if not assets and kw.has_key('assets'):
 			assets = kw['assets']
 		self.assets = list(assets)
+
+	@property
+	def assets(self):
+		return self._assets
+
+	@assets.setter
+	def assets(self, new_value):
+		if not isinstance(new_value, assetslist):
+			new_value = assetslist(new_value, env=self)
+		self._assets = new_value
+
+
 
 	def urls(self, urlize=f.remote_path):
 		return self.apply(append=urlize)
