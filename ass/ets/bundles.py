@@ -134,9 +134,14 @@ class assetslist(bundleslist):
 			raise KeyError
 
 
-class Environment(CommonOptions): pass
+class Environment(CommonOptions): 
+	"""An Environment is just a configuration object.
+	"""
 
 class Assets(CommonOptions):
+	"""An Assets-instance is a container for bundles. The
+	name is probably confusing.
+	"""
 	def __init__(self, *bundles, **kw):
 		super(Assets, self).__init__(**kw)
 		if not bundles and kw.has_key('bundles'):
