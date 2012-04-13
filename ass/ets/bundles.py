@@ -137,8 +137,10 @@ class assetslist(bundleslist):
 class Environment(CommonOptions): pass
 
 class Assets(CommonOptions):
-	def __init__(self, bundles=[], **kw):
+	def __init__(self, *bundles, **kw):
 		super(Assets, self).__init__(**kw)
+		if not bundles and kw.has_key('bundles'):
+			bundles = kw['bundles']
 		self.bundles = bundles
 
 	@property
