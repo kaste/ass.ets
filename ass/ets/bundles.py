@@ -163,7 +163,7 @@ class Bundle(CommonOptions):
 		super(Bundle, self).__init__(**kw)
 		if not assets and kw.has_key('assets'):
 			assets = kw['assets']
-		self.assets = list(assets)
+		self.assets = assets
 
 	@property
 	def assets(self):
