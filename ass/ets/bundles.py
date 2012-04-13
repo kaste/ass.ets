@@ -180,50 +180,16 @@ class Bundle(CommonOptions):
 	def urls(self, urlize=f.remote_path):
 		return self.apply(append=urlize)
 
-		# pipe = getattr(self, self.mode)
-		# pipe.append(urlize)
-		# return self.apply(pipe=pipe)
-		# return pipe.apply(self.files, self)
-
-		# if pipe in (as_is, use_manifest):
-		# 	pipe = [pipe]
-
-		# pipe.append(urlize)
-		# return self.apply(pipe=pipe)
-
 	def apply(self, mode=None, pipe=None, append=None):
 		pipe = Pipe( pipe or getattr(self, mode or self.mode) )
 		if append:
 			pipe.append(append)
-		# pipe = isinstance(pipe, Pipe) and pipe or \
-		# 	   (pipe and Pipe(pipe)) or \
-		# 	   getattr(self, mode or self.mode)
 
 		return pipe.apply(self.assets, self)
-
-		# p = input or self.files 
-		# for worker in pipe:
-		# 	p |= worker(self)
-
-		# return p | list 
 
 	def build(self, mode=None, localize=f.local_path):
 		if mode:
 			warnings.warn('Because of the way nested bundles are built, passing a mode to build() might not work as you might expect.')
 
 		return self.apply(mode=mode, append=localize)
-
-		# pipe = getattr(self, mode)
-		# pipe.append(localize)
-		# return self.apply(pipe=pipe)
-
-		# content = self.apply() | local_path(self) 
-		# hash = hashlib.md5(content).hexdigest()[:8]
-		# filename = (self.output % hash) if '%s' in self.output else self.output
-		# filename = os.path.join(self.map_from, filename)
-
-		# with open(filename, 'wb') as f:
-		# 	f.write(content)
-
-		return content
 
