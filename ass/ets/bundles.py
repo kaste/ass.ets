@@ -193,3 +193,4 @@ class Bundle(CommonOptions):
 
 		return self.apply(mode=mode, append=localize)
 
+bundle = Bundle
