@@ -108,7 +108,7 @@ from pipeable import worker
 class BundleTest(unittest.TestCase):
 	def testGimmeUrlsAsIs(self):
 
-		bundle = ets.Bundle(files=['a.js', 'b.js'], map_from='/assets', map_to='/static', 
+		bundle = ets.Bundle('a.js', 'b.js', map_from='/assets', map_to='/static', 
 						mode='development',
 						development=ets.f.as_is)
 
@@ -116,7 +116,7 @@ class BundleTest(unittest.TestCase):
 
 	def testGivesUrlsFromManifest(self):
 		bundle = ets.Bundle(name='jslib', 
-						files=['a.js', 'b.js'], 
+						assets=['a.js', 'b.js'], 
 						map_from='/assets', map_to='/static', 
 						mode='development',
 						manifest=dict(jslib=['generated.js']),
@@ -134,7 +134,7 @@ class BundleTest(unittest.TestCase):
 		when(__builtin__).open(a).thenReturn(StrIO('a'))
 		when(__builtin__).open(b).thenReturn(StrIO('b'))
 
-		bundle = ets.Bundle(files=['a.js', 'b.js'], map_from='/', map_to='/static', 
+		bundle = ets.Bundle(assets=['a.js', 'b.js'], map_from='/', map_to='/static', 
 						development=[ets.f.read, ets.f.merge])
 		
 		assert bundle.apply('development') == ['ab']		
@@ -155,7 +155,7 @@ class BundleTest(unittest.TestCase):
 		when(__builtin__).open(a).thenReturn(StrIO('a'))
 		when(__builtin__).open(b).thenReturn(StrIO('b'))
 
-		bundle = ets.Bundle(files=['a.js', 'b.js'], map_from='/', map_to='/static', 
+		bundle = ets.Bundle(assets=['a.js', 'b.js'], map_from='/', map_to='/static', 
 						development=[ets.f.read, ets.f.merge, reverse])
 		
 		assert bundle.apply('development') == ['ba']		
@@ -168,7 +168,7 @@ class BundleTest(unittest.TestCase):
 		from mockito import when, unstub
 
 
-		bundle = ets.Bundle(files=['a.js'], map_from=os.path.dirname(__file__), map_to='/static', 
+		bundle = ets.Bundle(assets=['a.js'], map_from=os.path.dirname(__file__), map_to='/static', 
 						development=[ets.f.read, ets.f.merge, ets.f.uglifyjs])
 		
 		assert bundle.apply('development') == ['var a=1;']		
@@ -181,7 +181,7 @@ class BundleTest(unittest.TestCase):
 
 		a1 = os.path.join(os.path.dirname(__file__), 'a1-43379278.js')
 		
-		bundle = ets.Bundle(files=['a.js'], map_from=os.path.dirname(__file__), map_to='/static', 
+		bundle = ets.Bundle(assets=['a.js'], map_from=os.path.dirname(__file__), map_to='/static', 
 						mode='build_',
 						build_=[ets.f.read, ets.f.merge, 
 									 ets.f.uglifyjs, 
@@ -202,7 +202,7 @@ class BundleTest(unittest.TestCase):
 				manifest[key] = value
 
 		mocked_manifest = MockedManifest()
-		bundle = ets.Bundle(name='jsall', files=['a.js'], 
+		bundle = ets.Bundle(name='jsall', assets=['a.js'], 
 						map_from=os.path.dirname(__file__), map_to='/static', 
 						mode='development',
 						manifest=mocked_manifest,
@@ -214,11 +214,11 @@ class BundleTest(unittest.TestCase):
 
 	def testUrlsWithNestedBundles(self):
 
-		nested_bundle = ets.Bundle(files=['a.js'],
+		nested_bundle = ets.Bundle(assets=['a.js'],
 						mode='development',
 						development=[ets.f.echo]
 						)
-		bundle = ets.Bundle(files=[nested_bundle, 'b.js'], 
+		bundle = ets.Bundle(assets=[nested_bundle, 'b.js'], 
 						map_to='/static',
 						mode='development', 
 						development=ets.f.as_is)
@@ -246,11 +246,11 @@ class BundleTest(unittest.TestCase):
 
 		env = ets.Environment(mode='development', map_from='/')
 
-		nested_bundle = ets.Bundle(files=['a.js'], env=env,
+		nested_bundle = ets.Bundle(assets=['a.js'], env=env,
 						development=[content])
 
 		#keep in mind that build() expects a relative path at the end of the pipe
-		bundle = ets.Bundle(files=[nested_bundle, 'b.js'], env=env,
+		bundle = ets.Bundle(assets=[nested_bundle, 'b.js'], env=env,
 						development=[ets.f.read, ets.f.merge, store])
 
 		assert bundle.build() == [os.path.join('/', 'ab.js')]
@@ -277,7 +277,7 @@ class BundleTest(unittest.TestCase):
 							  	'js': {'development': [JS]}, 
 							  	'css': {'development': [CSS]}
 							  })
-		bundle = ets.Bundle(files=['a.js', 'b.css'], env=env,
+		bundle = ets.Bundle(assets=['a.js', 'b.css'], env=env,
 							development=[ets.f.automatic])
 
 		assert bundle.apply() == ['JS', 'CSS']

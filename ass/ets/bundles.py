@@ -140,9 +140,11 @@ class Assets(CommonOptions):
 class Bundle(CommonOptions):
 	name = Option()
 
-	def __init__(self, files=[], **kw):
+	def __init__(self, *assets, **kw):
 		super(Bundle, self).__init__(**kw)
-		self.files = files
+		if not assets and kw.has_key('assets'):
+			assets = kw['assets']
+		self.assets = list(assets)
 
 	def urls(self, urlize=f.remote_path):
 		return self.apply(append=urlize)
@@ -166,7 +168,7 @@ class Bundle(CommonOptions):
 		# 	   (pipe and Pipe(pipe)) or \
 		# 	   getattr(self, mode or self.mode)
 
-		return pipe.apply(self.files, self)
+		return pipe.apply(self.assets, self)
 
 		# p = input or self.files 
 		# for worker in pipe:
