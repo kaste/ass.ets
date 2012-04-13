@@ -1,11 +1,18 @@
-__version__ = "0.0.1"
+__version__ = "0.0.2"
+import os
 from setuptools import setup, find_packages
+
+def _read_contents(fn):
+	here = os.path.dirname( os.path.realpath(__file__) )
+	filename = os.path.join(here, fn)
+	with open(filename) as file:
+		return file.read()
 
 setup(
 	name='ass.ets',
 	version=__version__,
 	description='Asset management for Python.',
-	long_description='',
+	long_description=_read_contents('README'),
 	author="herr kaste",
 	author_email="herr.kaste@gmail.com",
 	packages=find_packages(exclude=['tests']),
