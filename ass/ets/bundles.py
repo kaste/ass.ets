@@ -60,13 +60,11 @@ class Pipe(list):
 		self.insert(0, worker)
 
 	def apply(self, iter, *a, **kw):
-		_finally = kw.pop('_finally', list)
-
 		p = iter
 		for worker in self:
 			p |= worker(*a, **kw)
 
-		return (p | _finally) if _finally else p
+		return p
 
 class CommonOptions(Options):
 	map_from = Option()
@@ -196,6 +194,6 @@ class Bundle(CommonOptions):
 		if mode:
 			warnings.warn('Because of the way nested bundles are built, passing a mode to build() might not work as you might expect.')
 
-		return self.apply(mode=mode, append=localize)
+		return self.apply(mode=mode, append=localize) | list
 
 bundle = Bundle
