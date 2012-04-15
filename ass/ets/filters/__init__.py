@@ -16,13 +16,21 @@ def local_path(files, bundle):
 @worker
 def remote_path(files, bundle):
 	for file in files:
-		yield '/'.join([bundle.map_to, file])
+		if os.path.isabs(file):
+			yield file
+		else:
+			yield '/'.join([bundle.map_to, file]) 
 
 @worker
 def translate_path(files, bundle):
 	for file in files:
 		relative_part = os.path.relpath(file, bundle.map_from)
-		yield os.path.join(bundle.map_to, relative_part)
+		yield '/'.join([bundle.map_to, relative_part])
+
+@worker
+def relative_path(files, root):
+	for file in files:
+		yield os.path.relpath(file, root)
 
 @worker
 def echo(items, bundle):
@@ -33,7 +41,11 @@ def echo(items, bundle):
 def as_is(files, bundle):
 	for file in files:
 		if isinstance(file, ass.ets.Bundle):
-			for f in file.apply():
+			# handling nested bundles still feels hacky
+			# assume the nested bundle yields relative paths with a root = subbundle.map_from
+			# first localize, so we have an absolute path
+			# then translate that path again to a relative path with the root = bundle.map_from
+			for f in file.apply() | local_path(file) | relative_path(bundle.map_from):#translate_path(bundle):
 				yield f
 		else:
 			yield file
