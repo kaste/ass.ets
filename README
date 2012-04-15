@@ -1,7 +1,8 @@
 The main purpose of an assets management application is to map local paths to urls on the server. Secondly you want to apply filters to sets of files, e.g. you want to merge and minify them. You often want this build-process to be automatic, on-the-fly, just by pressing refresh in your webbrowser. Later, in a production mode of your web application you just want to serve different, specific versions of your files.
 
-Since I was just too dumb to use miracle2k's [webassets](https://github.com/miracle2k/webassets) - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
+Since I was just too dumb to use miracle2k's `webassets <https://github.com/miracle2k/webassets>`_ - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
 
+::
 
 	from ass.ets import *
 	from ass.ets.filters import *
@@ -39,16 +40,17 @@ Since I was just too dumb to use miracle2k's [webassets](https://github.com/mira
 	# env.mode = 'build_'
 	# print [url for url in jslib.build()]
 
-There's is no much difference between urls() and build(). In the above example both pipes - 'development' and 'built_' - yield relative paths at the end, urls() just uses env.map_to to construct a url, where build() maps to the local path using map_from.
-Internally build() appends the following filter to the chain:
+There's is no much difference between ``urls()`` and ``build()``. In the above example both pipes - 'development' and '\built_' - yield relative paths at the end, ``urls()`` just uses ``env.map_to`` to construct a url, where ``build()`` maps to the local path using ``map_from``.
+Internally ``build()`` appends the following filter to the chain::
 
 	@worker
 	def local_path(files, bundle):
 		for file in files:
 			yield os.path.join(bundle.map_from, file)
 
+The ``@worker`` annotation comes from the `useless.pipes <http://pypi.python.org/pypi/useless.pipes>`_ package.
 
-Ok, add another bundle:
+Ok, add another bundle::
 
 	less_styles = Bundle(
 		'styles.less', 
@@ -65,9 +67,9 @@ Ok, add another bundle:
 		build_=[read, merge, minify, store_as('styles-%(version)s.css'), store_manifest]
 	)
 
-T.i. in development mode we just spit the files as they are, when we build the less-file gets 'delessed', after that all css-files are merged and stored. Note that the less_styles.build_ chain yields the css-content. We don't store a temporary file. The current implementation of read actually expects nested bundles to yield contents not filenames. 
+T.i. in development mode we just spit the files as they are, when we build the less-file gets 'delessed', after that all css-files are merged and stored. Note that the `less_styles.build_` chain yields the css-content. We don't store a temporary file. The current implementation of `read` actually expects nested bundles to yield contents not filenames. 
 
-Ok, now we need the less-js file in the development version of our app. We write a simple filter:
+Ok, now we need the less-js file in the development version of our app. We write a simple filter::
 
 	def add(*filenames):
 		@worker
@@ -91,7 +93,7 @@ Ok, now we need the less-js file in the development version of our app. We write
 
 	# all_styles.urls() now yields .css, .less and .js files in development mode and one .css file in built_ or production mode.
 
-In jinja we could define two macros:
+In jinja we could define two macros::
 
 	{%- macro asset(url) %}
         {%- if url.endswith('.js') %}<script type="text/javascript" src="{{ url }}"></script>{%- endif %}
@@ -104,31 +106,30 @@ In jinja we could define two macros:
         {%- endfor %}
     {%- endmacro %}
 
-Assume Flask and g.all_styles = all_styles:
+Assume ``Flask`` and ``g.all_styles = all_styles``::
 
 	{{ assets_for(g.all_styles) }}
 
 and we're done.
 
-Some last things; if your nesting bundles, then bundle.env gets automatically set to the parent bundle if you don't set a default. And finally, named bundles can be accessed on its parents.
-
-	all_styles.assets.less_style.urls()
-
-If you often write this:
+Some last things; if you often write::
 	
 	[read, merge, uglifyjs, store_as('...'), store_manifest]
 
-You could instead write something like this: 
+You could instead write something like this::
 
 	process_js = (read, merge, uglifyjs)
-	build_ = process_js + (store_as('...'), store_manifest)
+	jslib.build_ = process_js + (store_as('...'), store_manifest)
 
 OR
+
+::
 	
 	def process_js_and_store(fn):
 		return [read, merge, uglifyjs, store_as(fn), store_manifest]
+	jslib.build_ = process_js_and_store('...')
 
-A filter that combines other filters by the way looks rather awkward:
+A worker that combines other filters by the way looks rather awkward::
 
 	@worker
 	def read_and_merge(items, bundle):
