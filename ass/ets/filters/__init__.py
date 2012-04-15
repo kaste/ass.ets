@@ -1,6 +1,6 @@
 import os
 import hashlib
-from pipeable import producer, consumer, worker
+from useless.pipes import worker
 
 import ass.ets 
 import ass.ets.bundles

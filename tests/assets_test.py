@@ -103,7 +103,7 @@ class OptionsTest(unittest.TestCase):
 		assert isinstance(assets.manifest, ets.Manifest)
 
 
-from pipeable import worker
+from useless.pipes import worker
 
 class BundleTest(unittest.TestCase):
 	def testGimmeUrlsAsIs(self):

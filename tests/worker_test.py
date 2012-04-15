@@ -1,8 +1,8 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-# from pipeable import worker
-from pipeable.pipes import Worker as _Worker
+# from useless.pipes import worker
+from useless.pipes.pipes import Worker as _Worker
 
 class Incompatible(Exception): pass
 

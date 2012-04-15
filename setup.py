@@ -16,7 +16,7 @@ setup(
 	author="herr kaste",
 	author_email="herr.kaste@gmail.com",
 	packages=find_packages(exclude=['tests']),
-	install_requires=[],
+	install_requires=['useless.pipes'],
 	tests_require=['pytest', 'unittest2', 'cssmin'],
 	classifiers= [
         'Development Status :: 3 - Alpha',

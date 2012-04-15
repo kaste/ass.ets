@@ -1,4 +1,4 @@
-from pipeable import worker
+from useless.pipes import worker
 
 import cssmin
 
