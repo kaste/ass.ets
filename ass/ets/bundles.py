@@ -20,6 +20,9 @@ def manifest_setter(name):
 	return setter
 
 class Manifest(object):
+	"""Naive implementation. Uses yaml or pickle to serialize.
+
+	"""
 	def __init__(self, filename, serializer=serializer):
 		self.filename = filename
 		self.serializer = serializer
@@ -133,12 +136,38 @@ class assetslist(bundleslist):
 
 
 class Environment(CommonOptions): 
-	"""An Environment is just a configuration object.
+	"""An Environment is just a configuration object. Consider:
+
+		env = Environment(map_from='./static')
+		js = bundle(env=env)
+
+		js.map_from == './static'
+
+
 	"""
 
 class Assets(CommonOptions):
 	"""An Assets-instance is a container for bundles. The
 	name is probably confusing.
+
+		assets = Assets(
+			bundle(name='bundleA', assets=['fileA'...] ...),
+			production=use_manifest, #etc
+		)
+
+		# now you could:
+		for bundle in assets: ....
+			bundle.build()
+
+		# or access the named bundle, just like
+		assets.bundles.bundleA.build()
+
+		# or assign a bundle
+		assets.bundles.javascripts = bundle(...)
+
+	Notice, that the name of the bundle, t.i. its name-attribute, gets
+	used as the key for the bundles-mapping.
+
 	"""
 	def __init__(self, *bundles, **kw):
 		super(Assets, self).__init__(**kw)
@@ -160,6 +189,31 @@ class Assets(CommonOptions):
 		return self.bundles.itervalues()
 
 class Bundle(CommonOptions):
+	"""A Bundle bundles files or nested bundles. Named bundles
+	can be accessed via the assets member.
+
+		less_style = bundle(name=less)
+		styles = bundle(
+			less_style, 'main.css', #...
+		)
+
+		styles.assets.less == less_style
+		styles.assets['less'] == less_style
+
+	Bundles provide the two useful methods urls() and build() and
+	the underlying method apply().
+
+	Usually you set the mode and call urls() and or build()
+
+		styles.make_it = [read, merge] #...
+		styles.mode = 'make_it'
+		styles.build()
+
+	But better start with the mode names 'development', 'production' 
+	and 'build_'.
+
+
+	"""
 	name = Option()
 
 	def __init__(self, *assets, **kw):
@@ -181,9 +235,20 @@ class Bundle(CommonOptions):
 
 
 	def urls(self, urlize=f.remote_path):
+		"""Applies the mode self.mode, converts paths to urls.
+		
+		Actually returns a generator you have to consume.
+
+		"""
 		return self.apply(append=urlize)
 
 	def apply(self, mode=None, pipe=None, append=None):
+		"""Either provide a list of workers/filters on pipe or
+		a name of a mode, otherwise uses self.mode.
+
+		Actually not necessarily applies the filters but returns
+		a generator you have to consume.  
+		"""
 		pipe = Pipe( pipe or getattr(self, mode or self.mode) )
 		if append:
 			pipe.append(append)
@@ -191,6 +256,10 @@ class Bundle(CommonOptions):
 		return pipe.apply(self.assets, self)
 
 	def build(self, mode=None, localize=f.local_path):
+		"""Applies the set mode, converts relative paths to absolute 
+		local paths and returns a list.
+
+		"""
 		if mode:
 			warnings.warn('Because of the way nested bundles are built, passing a mode to build() might not work as you might expect.')
 
