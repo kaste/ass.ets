@@ -2,6 +2,8 @@ The main purpose of an assets management application is to map local paths to ur
 
 Since I was just too dumb to use miracle2k's `webassets <https://github.com/miracle2k/webassets>`_ - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
 
+As this is alpha, it just doesn't work. Please contribute via `github <http://github.com/kaste/ass.ets>`. In the following we use three filters; of course you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these or write your own filters.
+
 ::
 
 	from ass.ets import *
@@ -15,17 +17,20 @@ Since I was just too dumb to use miracle2k's `webassets <https://github.com/mira
 		map_to='/static',
 		# t.i. a local file ./static/lib.js will later be served as /static/lib.js
 		
+		#use the default implementation
 		manifest=os.path.join(here, 'assets-manifest'),   # we don't want the manifest in the static dir
+		#or provide your own object that answers get(key) and set(key, value)
 		
 		#some defaults
 		production=use_manifest #in production mode we ask the manifest which file to serve, in this case we need to build before we deploy
-		#note: use_manifest is just a filter
+		#note: use_manifest is just another filter
 	)
 
 	jslib = bundle(
 		"jquery.1.7.1.js", #...
 		name='jslib',   # the naive manifest implementation uses this name
 		env=env,        # the bundle inherits all the settings from env 
+
 		#very explicit pipe of filters
 		development=[read, merge, store_as('jslib.js')],
 		build_=[read, merge, uglifyjs, store_as('jslib-%(version)s.js'), store_manifest],
@@ -118,19 +123,39 @@ Some last things; if you often write::
 
 You could instead write something like this::
 
+	# no magic here, just tuple + tuple
 	process_js = (read, merge, uglifyjs)
 	jslib.build_ = process_js + (store_as('...'), store_manifest)
 
-OR
-
-::
+OR::
 	
 	def process_js_and_store(fn):
 		return [read, merge, uglifyjs, store_as(fn), store_manifest]
 	jslib.build_ = process_js_and_store('...')
 
-A worker that combines other filters by the way looks rather awkward::
+A worker that combines other filters by the way looks rather awkward, just to let you know::
 
 	@worker
 	def read_and_merge(items, bundle):
 		return items | read(bundle) | merge(bundle)
+
+As an example, the naive ``uglifyjs`` filter used herein, looks like this::
+
+	@worker
+	def uglifyjs(files, bundle):
+		args = ['uglifyjs']
+		for file in files:
+			proc = subprocess.Popen(
+				args,
+				stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+				shell=True)
+			stdout, stderr = proc.communicate(file)
+
+			if proc.returncode != 0:
+				raise FilterError(('uglifyjs: subprocess had error: stderr=%s, '+
+	                               'stdout=%s, returncode=%s') % (
+	                                    stderr, stdout, proc.returncode))
+
+			yield stdout
+
+This filter likely fails because of ``args = ['uglifyjs']`` and ``shell=True``. So contribute back.
