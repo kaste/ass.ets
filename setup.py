@@ -15,6 +15,8 @@ setup(
 	long_description=_read_contents('README'),
 	author="herr kaste",
 	author_email="herr.kaste@gmail.com",
+	url='http://github.com/kaste/ass.ets',
+	download_url='http://github.com/kaste/ass.ets/tarball/master',
 	packages=find_packages(exclude=['tests']),
 	install_requires=['useless.pipes'],
 	tests_require=['pytest', 'unittest2', 'cssmin'],
