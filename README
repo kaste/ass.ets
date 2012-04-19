@@ -2,7 +2,7 @@ The main purpose of an assets management application is to map local paths to ur
 
 Since I was just too dumb to use miracle2k's `webassets <https://github.com/miracle2k/webassets>`_ - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
 
-As this is alpha, it just doesn't work. Please contribute via `github <http://github.com/kaste/ass.ets>`. In the following we use three filters; of course you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these or write your own filters.
+As this is alpha, it just doesn't work. Please contribute via `github <http://github.com/kaste/ass.ets>`_. In the following we use three filters; of course you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these or write your own filters.
 
 ::
 
