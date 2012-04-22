@@ -1,5 +1,4 @@
-__version__ = "0.0.3"
-import os
+import os, re
 from setuptools import setup, find_packages
 
 def _read_contents(fn):
@@ -8,9 +7,11 @@ def _read_contents(fn):
 	with open(filename) as file:
 		return file.read()
 
+version = re.findall(r'__version__ = "(.*?)"', _read_contents("ass/ets/__init__.py"))[0]
+
 setup(
 	name='ass.ets',
-	version=__version__,
+	version=version,
 	description='Asset management for webapps.',
 	long_description=_read_contents('README.rst'),
 	author="herr kaste",
