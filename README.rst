@@ -158,4 +158,4 @@ As an example, the naive ``uglifyjs`` filter used herein, looks like this::
 
 			yield stdout
 
-This filter likely fails because of ``args = ['uglifyjs']`` and ``shell=True``. So contribute back.
+This filter likely fails because of ``args = ['uglifyjs']`` and ``shell=True``. So contribute back to `dev <http://github.com/kaste/ass.ets/tarball/master#egg=ass.ets-dev>`_.
