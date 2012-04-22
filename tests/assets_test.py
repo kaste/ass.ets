@@ -14,8 +14,8 @@ class InheritableOptionsTest(unittest.TestCase):
 
 		try:
 			assert assets.map_from == 'etc'
-			self.fail('Should have raised undefined.')
-		except ets.Undefined:
+			self.fail('Should have raised.')
+		except AttributeError:
 			pass
 
 	def testReturnsValueIfPresent(self):

@@ -14,7 +14,7 @@ def option(name, desc='', getter=None, setter=None, default=None):
 				if default:
 					return default
 
-				raise Undefined("%s is undefined." % name)
+				raise AttributeError("%r is undefined" % name)
 
 	def set(self, value):
 		self._options[name] = value
@@ -38,7 +38,7 @@ def pipelize_getter(name, default=None):
 				if default:
 					rv = default
 
-				raise Undefined("%s is undefined." % name)
+				raise AttributeError("%s is undefined." % name)
 
 		return Pipe(rv)
 
