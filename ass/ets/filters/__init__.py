@@ -68,11 +68,6 @@ def store_manifest(files, bundle):
 		yield file
 
 	bundle.manifest.set(bundle.name, filenames)
-# @worker
-# def compute_filename(files, bundle):
-# 	for file in files: pass
-
-# 	yield os.path.join(bundle.map_to, bundle.output)
 
 @worker
 def read(items, bundle):
@@ -94,21 +89,11 @@ def merge(contents, bundle):
 
 	yield rv
 
-# @consumer
-# def _concat(files, bundle):
-# 	rv = ''
-# 	for file in files:
-# 		rv += file
-
-# 	return rv
-
 def store_as(filename_):
 	versioned = '%(version)s' in filename_
 
 	@worker
 	def store_as_(contents, bundle):
-		# filename = os.path.join(bundle.map_from, filename_)
-		
 		for content in contents:
 			filename = filename_
 			if versioned:
