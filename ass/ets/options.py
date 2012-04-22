@@ -1,8 +1,6 @@
 
 class option_property(property): pass
 
-class Undefined(Exception): pass
-
 def option(name, desc='', getter=None, setter=None, default=None):
 	def get(self):
 		try:

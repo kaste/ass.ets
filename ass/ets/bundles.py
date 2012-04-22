@@ -5,7 +5,7 @@ try:
 except ImportError:
 	import pickle as serializer
 
-from options import Option, Options, Undefined, dict_getter
+from options import Option, Options, dict_getter
 import filters as f
 import dicts
 

@@ -11,6 +11,6 @@ __version__ = "0.0.3"
 
 from bundles import Environment, Assets, bundle, Bundle, Manifest
 import filters as f
-from options import Option, Options, Undefined, dict_getter
+from options import Option, Options, dict_getter
 from useless.pipes import worker
 
