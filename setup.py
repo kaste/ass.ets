@@ -12,7 +12,7 @@ setup(
 	name='ass.ets',
 	version=__version__,
 	description='Asset management for webapps.',
-	long_description=_read_contents('README'),
+	long_description=_read_contents('README.rst'),
 	author="herr kaste",
 	author_email="herr.kaste@gmail.com",
 	url='http://github.com/kaste/ass.ets',
