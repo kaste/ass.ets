@@ -188,6 +188,10 @@ class Assets(CommonOptions):
 	def __iter__(self):
 		return self.bundles.itervalues()
 
+	def __repr__(self):
+		return "Assets(%s)" % ', '.join(map(lambda i: "%r" % i, self.bundles.values()))
+
+
 class Bundle(CommonOptions):
 	"""A Bundle bundles files or nested bundles. Named bundles
 	can be accessed via the assets member.
