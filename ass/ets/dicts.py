@@ -50,6 +50,12 @@ class listdicthybrid(object):
 			raise IndexError
 		self.data.pop(i)
 
+	def values(self):
+		return self.data
+
+	def keys(self):
+		return filter(None, map(self._key_func_, self.data))
+
 	def __iter__(self):
 		return iter(self.data)
 		
