@@ -58,6 +58,9 @@ class listdicthybrid(object):
 
 	def __iter__(self):
 		return iter(self.data)
+
+	def __repr__(self):
+		return repr(self.values())
 		
 
 class ordered(object):

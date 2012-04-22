@@ -265,4 +265,11 @@ class Bundle(CommonOptions):
 
 		return self.apply(mode=mode, append=localize) | list
 
+	def __repr__(self):
+		try:
+			return "Bundle(name=%r)" % self.name
+		except:
+			return "Bundle(%s)" % ', '.join(map(lambda i: "%r" % i, self.assets.values()))
+
+
 bundle = Bundle
