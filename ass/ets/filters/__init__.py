@@ -125,6 +125,8 @@ def store_as(filename_):
 
 
 import subprocess
+import sys
+on_windows = sys.platform == 'win32'
 
 @worker
 def uglifyjs(files, bundle):
@@ -133,7 +135,7 @@ def uglifyjs(files, bundle):
 		proc = subprocess.Popen(
 			args,
 			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-			shell=True)
+			shell=True if on_windows else False)
 		stdout, stderr = proc.communicate(file)
 
 		if proc.returncode != 0:
@@ -150,7 +152,7 @@ def lessify(files, bundle):
 		proc = subprocess.Popen(
 			args,
 			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-			shell=True)
+			shell=True if on_windows else False)
 		stdout, stderr = proc.communicate(file)
 
 		if proc.returncode != 0:
