@@ -1,66 +1,7 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-# from useless.pipes import worker
-from useless.pipes.pipes import Worker as _Worker
-
-class Incompatible(Exception): pass
-
-class Worker(_Worker):
-    def __ror__(self, left):
-    	try:
-    		# print 'L', left.target.wrapped_func
-    		(lin, lout) = left.target.wrapped_func.ensure
-    		(rin, rout) = self.target.wrapped_func.ensure
-    		# print '++', lout, rin
-    		if lout and rin and lout not in rin:
-    			raise Incompatible('Incompatible left: %s to right: %s' % (lout, rin))
-    	except AttributeError:
-    		pass
-
-    	return super(Worker, self).__ror__(left)
-    
-def _worker(func):
-    def wrapper(*a, **kw):
-        def f(iter):
-            return func(iter, *a, **kw)
-        f.wrapped_func = func
-        f.__name__ = func.__name__
-        return Worker(f)
-    
-    return wrapper
-
-
-def worker(func=None,accept=None, spits=None):
-	if func:
-		return _worker(func)
-
-	# if accept is None and spits is None:
-	#     def wrapper(*a, **kw):
-	#         def f(iter):
-	#             return func(iter, *a, **kw)
-	#         f.wrapped_func = func
-	#         f.__name__ = func.__name__  + 'WRAPPED'
-	#         return Worker(f)
-	    
-	#     return wrapper
-
-	def wrap(f):
-		f.ensure = (accept, spits)
-		return _worker(f)
-
-	return wrap   
-
-def ensure(in_=None, out=None):
-
-	def wrapp(f):
-		f.ensure = (in_, out)
-		return f
-
-	return wrapp
-
-declare = ensure
-
+from ass.ets.workers import filter, Incompatible
 
 class Symbol(object):
 	pass
@@ -69,33 +10,74 @@ items = Symbol()
 contents = Symbol()
 
 # @ensure(items % contents)
-@worker(accept='items', spits='items')
-# @ensure(in_='items', out='items')
-def echo(items):
+@filter(yields='items')
+def yields_items(items):
 	for item in items:
 		yield item
 
-@worker(accept='contents')
-# @ensure(in_='contents')
-def failing(contents):
+@filter(accepts='items')
+def accepts_items(items):
+	for item in items:
+		yield item
+
+@filter(accepts='contents')
+def accepts_contents(contents):
 	yield 'blub'
 
-class EnsureTest(unittest.TestCase):
-	def testEnsure(self):
+@filter()
+def anything(items):
+	for item in items:
+		yield item
 
-		print echo
-		# print echo.ensure
-		w = echo()
+class EnsureInformalTypesTest(unittest.TestCase):
+	def testIncomatible(self):
 		try:
-			assert [1,2] | w | w | failing() == ['blub']
+			assert [1,2] | yields_items() | accepts_contents() == ['blub']
 			self.fail()
-		except Incompatible,e :
-			print e
+		except Incompatible:
+			pass
 
-		print repr(w)
-		print w.target
-		print w.target.ensure
+	def testCompatible(self):
+		try:
+			assert [1,2] | yields_items() | accepts_items() == [1,2]
+		except:
+			raise
+			# self.fail()
+
+	def testUnspecifiedMeansAnything(self):
+		try:
+			assert [1,2] | anything() | anything() == [1,2]
+		except:
+			raise
+			# self.fail()
+
+	def testAccessOriginalFunc(self):
+		def origin(items):
+			for i in items: yield i
+
+		wrapped = filter(origin)
+
+		assert wrapped.original_function == origin
+
+	def testFurtherDecorate(self):
+		@filter
+		def origin(items):
+			for i in items: yield i
+
+		state = [1]
+		def decorator(f):
+			def decorated(i, *a, **kw):
+				state.append(2)
+				return f(i, *a, **kw)
+			return decorated
+
+		origin.decorate_with(decorator)
+
+		assert [1,2] | origin() == [1,2]
+		assert state == [1, 2]
 
 
-		assert False
-		pass
+
+
+
+
