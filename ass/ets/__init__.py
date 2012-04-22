@@ -1,3 +1,13 @@
+"""
+    ass.ets
+    
+    Asset management for webapps.
+
+    :copyright: (c) 2012 by Herrn Kaste <herr.kaste@gmail.com>.
+    :license: BSD, see LICENSE for more details.
+"""
+
+__version__ = "0.0.3"
 
 from bundles import Environment, Assets, bundle, Bundle, Manifest
 import filters as f
