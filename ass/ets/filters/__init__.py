@@ -123,6 +123,7 @@ def store_as(filename_):
 
 	return store_as_		
 
+#
 
 import subprocess
 import sys
@@ -146,7 +147,7 @@ def uglifyjs(files, bundle):
 		yield stdout
 
 @worker
-def lessify(files, bundle):
+def lessify(files, bundle):		
 	args = ['lessc', '-']
 	for file in files:
 		proc = subprocess.Popen(
@@ -162,10 +163,12 @@ def lessify(files, bundle):
 
 		yield stdout
 
-try:
-	from cssminify import *
-except ImportError:
-	pass
+from cssminify import *				
+
+
+#
+
+
 
 def _get_pipe_for(ext, bundle):
 	return ass.ets.bundles.Pipe( bundle.filters[ext][bundle.mode] )
