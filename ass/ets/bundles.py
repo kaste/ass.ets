@@ -96,7 +96,7 @@ class bundleslist(dicts.listdicthybrid, dicts.dotted):
 
 	def __init__(self, data=[], env=None):
 		self._env = env
-		super(bundleslist, self).__init__(data, key_func=operator.attrgetter('name'))
+		super(bundleslist, self).__init__(data, key_func=lambda i: getattr(i, 'name', None))
 
 	def _prepare_bundle(self, bundle, key):
 		if key is not None:
