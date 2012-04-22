@@ -215,10 +215,10 @@ class BundleTest(unittest.TestCase):
 	def testUrlsWithNestedBundles(self):
 
 		nested_bundle = ets.Bundle(assets=['a.js'],
-						mode='development',
 						development=[ets.f.echo]
 						)
 		bundle = ets.Bundle(assets=[nested_bundle, 'b.js'], 
+						map_from='/static',
 						map_to='/static',
 						mode='development', 
 						development=ets.f.as_is)
