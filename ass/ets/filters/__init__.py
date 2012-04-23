@@ -1,19 +1,19 @@
 import os
 import hashlib
-from useless.pipes import worker
 
 import ass.ets 
 import ass.ets.bundles
+from ass.ets.workers import filter, Incompatible
 
 class FilterError(Exception): pass
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def local_path(files, bundle):
 	for file in files:
 		yield os.path.join(bundle.map_from, file)
 
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def remote_path(files, bundle):
 	for file in files:
 		if os.path.isabs(file):
@@ -21,36 +21,40 @@ def remote_path(files, bundle):
 		else:
 			yield '/'.join([bundle.map_to, file]) 
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def translate_path(files, bundle):
 	for file in files:
 		relative_part = os.path.relpath(file, bundle.map_from)
 		yield '/'.join([bundle.map_to, relative_part])
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def relative_path(files, root):
 	for file in files:
 		yield os.path.relpath(file, root)
 
-@worker
+@filter
 def echo(items, bundle):
 	for item in items:
 		yield item
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def as_is(files, bundle):
 	for file in files:
 		if isinstance(file, ass.ets.Bundle):
+			bundle = file
+			iterator = bundle.apply()
+			if not iterator.yields('filenames'):
+				raise Incompatible("%r must yield 'filenames', actually yields %r" % (bundle, iterator.yields()))
 			# handling nested bundles still feels hacky
 			# assume the nested bundle yields relative paths with a root = subbundle.map_from
 			# first localize, so we have an absolute path
 			# then translate that path again to a relative path with the root = bundle.map_from
-			for f in file.apply() | local_path(file) | relative_path(bundle.map_from):#translate_path(bundle):
+			for f in iterator | local_path(file) | relative_path(bundle.map_from):
 				yield f
 		else:
 			yield file
 
-@worker
+@filter(yields='filenames')
 def ask_manifest(files, bundle):
 	# we need to consume the given iterator
 	for file in files: pass
@@ -60,7 +64,7 @@ def ask_manifest(files, bundle):
 
 use_manifest = ask_manifest
 
-@worker
+@filter(accepts='filenames', yields='filenames')
 def store_manifest(files, bundle):
 	filenames = []
 	for file in files:
@@ -69,11 +73,15 @@ def store_manifest(files, bundle):
 
 	bundle.manifest.set(bundle.name, filenames)
 
-@worker
+@filter(accepts='filenames', yields='contents')
 def read(items, bundle):
 	for item in items:
 		if isinstance(item, ass.ets.Bundle):
-			for content in item.apply():
+			bundle = item
+			iterator = bundle.apply()
+			if not iterator.yields('contents'):
+				raise Incompatible("%r must yield 'contents', actually yields %r" % (bundle, iterator.yields()))
+			for content in iterator:
 				yield content
 		else:
 			filename = os.path.join(bundle.map_from, item)
@@ -81,7 +89,7 @@ def read(items, bundle):
 				yield file.read()
 
 
-@worker
+@filter(accepts='contents', yields='contents')
 def merge(contents, bundle):
 	rv = ''
 	for content in contents:
@@ -92,7 +100,7 @@ def merge(contents, bundle):
 def store_as(filename_):
 	versioned = '%(version)s' in filename_
 
-	@worker
+	@filter(accepts='contents', yields='filenames')
 	def store_as_(contents, bundle):
 		for content in contents:
 			filename = filename_
@@ -114,7 +122,7 @@ import subprocess
 import sys
 on_windows = sys.platform == 'win32'
 
-@worker
+@filter(accepts='contents', yields='contents')
 def uglifyjs(files, bundle):
 	args = ['uglifyjs']
 	for file in files:
@@ -131,7 +139,7 @@ def uglifyjs(files, bundle):
 
 		yield stdout
 
-@worker
+@filter(accepts='contents', yields='contents')
 def lessify(files, bundle):		
 	args = ['lessc', '-']
 	for file in files:
@@ -158,7 +166,7 @@ from cssminify import *
 def _get_pipe_for(ext, bundle):
 	return ass.ets.bundles.Pipe( bundle.filters[ext][bundle.mode] )
 
-@worker
+@filter(accepts='filenames')
 def automatic(files, bundle):
 	by_ext = {}
 	ordered = []

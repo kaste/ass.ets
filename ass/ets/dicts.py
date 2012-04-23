@@ -112,7 +112,10 @@ class dotted(object):
 	"""Naive mixin for a dict to enable attribute-style access."""
 	__slots__ = ('data',)
 	def __getattr__(self, key):
-		return self.__getitem__(key)
+		try:
+			return self.__getitem__(key)
+		except KeyError:
+			raise AttributeError
 
 	def __setattr__(self, key, value):
 		if key in self.__class__.__slots__:

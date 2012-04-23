@@ -1,7 +1,7 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-from ass.ets.workers import filter, Incompatible
+from ass.ets.workers import filter, Incompatible, Pipe
 
 class Symbol(object):
 	pass
@@ -24,7 +24,7 @@ def accepts_items(items):
 def accepts_contents(contents):
 	yield 'blub'
 
-@filter()
+@filter
 def anything(items):
 	for item in items:
 		yield item
@@ -75,6 +75,35 @@ class EnsureInformalTypesTest(unittest.TestCase):
 
 		assert [1,2] | origin() == [1,2]
 		assert state == [1, 2]
+
+	def testAskFilterWhatItAcceptsAndYields(self):
+		@filter(accepts='filenames', yields='contents')
+		def f(items):
+			for i in items: yield i
+
+		assert f.accepts == 'filenames'
+		assert f.yields == 'contents'
+
+	def testAskActualWorkerWhatHeAcceptsOrYields(self):
+		@filter(accepts='filenames', yields='contents')
+		def f(items):
+			for i in items: yield i
+
+		worker = f()
+		assert worker.accepts() == 'filenames'
+		assert worker.yields() == 'contents'
+
+	def testAskPipeWhatItAcceptsAndYields(self):
+		@filter(accepts='a b', yields='b c')
+		def f(items):
+			for i in items: yield i
+
+		pipe = Pipe([f])
+		assert pipe.accepts('a')
+		assert pipe.yields('c')
+
+		assert pipe.accepts() == 'a b'
+		assert pipe.yields() == 'b c'
 
 
 
