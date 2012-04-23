@@ -1,4 +1,5 @@
 # from useless.pipes import worker
+import inspect 
 from useless.pipes.pipes import Worker as _Worker
 
 class Incompatible(Exception): pass
@@ -24,19 +25,45 @@ class Worker(_Worker):
     def yields(self, symbol=None):
         yields = self.target.original_function.yields
         return (symbol in yields or yields == anything) if symbol else yields
+
+    @property
+    def __doc__(self):
+        return self.target.__doc__
+
+    @property
+    def __name__(self):
+        return self.target.__name__
     
 def _worker(func, accepts=anything, yields=anything):
+    spec = inspect.getargspec(func)
+    args_with_defaults = spec.defaults and len(spec.defaults) or 0
+    kw_args = spec.args[args_with_defaults:]
+    possible_one_step = len(spec.args) == 1
+
+    bound_kw = {}
     def bind(*a, **kw):
+        # trigger three step process if kw has only keyword arguments
+        # in python we can def f(a, b=1) => f(a=1, b=2)
+        # t.i. a positional arg can be treated as if it were a kw argument
+        # but this shouldn't trigger three-step, only e.g. f(b=2)
+        if kw and not a and set(kw_args).difference(kw):
+            bound_kw.update(kw)
+            return bind
+
+        kw.update(bound_kw)
         def apply(iter):
             return apply.original_function(iter, *a, **kw)
 
         apply.original_function = bind.original_function
         apply.__name__ = func.__name__
+        apply.__doc__ = func.__doc__
         return Worker(apply)
 
     bind.accepts = func.accepts = accepts 
     bind.yields  = func.yields  = yields 
     bind.original_function = func
+    bind.__name__ = func.__name__
+    bind.__doc__ = func.__doc__
 
     def decorate_with(f):
         bind.original_function = f(bind.original_function)
@@ -81,7 +108,3 @@ class Pipe(list):
 
         return p
 
-# import inspect 
-# spec = inspect.getargspec(f)
-# args_with_defaults = len(spec.defaults)
-# kw_args = spec.args[args_with_defaults:]

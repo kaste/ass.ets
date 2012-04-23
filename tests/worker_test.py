@@ -105,7 +105,55 @@ class EnsureInformalTypesTest(unittest.TestCase):
 		assert pipe.accepts() == 'a b'
 		assert pipe.yields() == 'b c'
 
+	def testDocStrings(self):
+		doc = "Echoes"
+		def f(items, a):
+			for i in items: yield i
+		f.__doc__ = doc
 
+		assert filter(f).__doc__ == doc
+		assert filter(f)('a').__doc__ == doc
+
+		assert filter(f).__name__ == 'f'
+		assert filter(f)('a').__name__ == 'f'
+
+
+class ThreeStepUsageOfWorkers(unittest.TestCase):
+	def testEnsureTwoStepUsageOfKeywordedArgument(self):
+		state = [1]
+		@filter
+		def w(items, a, b=state):
+			state.append(2)
+			for i in items: yield i
+
+		[1,2] | w('a') == [1,2]
+		assert state == [1,2]
+
+		state = [3]
+		[1,2] | w('a', b=state) == [1,2]
+		assert state == [3,2]
+
+		state = [5]
+		[1,2] | w(b=state, a='a') == [1,2]
+		assert state == [5,2]
+
+	def testThreeSteps(self):
+		@filter
+		def w(items, a, b=None):
+			state.append(2)
+			for i in items: yield i
+
+		state = [1]
+		[1,2] | w(b=state)('a') == [1,2]
+		assert state == [1,2]
+
+	def _testPossibleOneStep(self):
+		@filter
+		def echo(items):
+			for i in items: yield i
+
+
+		assert [1,2] | echo == [1,2]
 
 
 
