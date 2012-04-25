@@ -101,15 +101,15 @@ Ok, now we need the less-js file in the development version of our app. We write
 In jinja we could define two macros::
 
 	{%- macro asset(url) %}
-        {%- if url.endswith('.js') %}<script type="text/javascript" src="{{ url }}"></script>{%- endif %}
-        {%- if url.endswith('.css') %}<link rel="stylesheet" type="text/css" href="{{ url }}" />{%- endif %}
-        {%- if url.endswith('.less') %}<link rel="stylesheet/less" type="text/css" href="{{ url }}" />{%- endif %}
-    {%- endmacro %}
-    {%- macro assets_for(bundle) %}
-        {%- for url in bundle.urls() %}
-            {{ asset(url) }}
-        {%- endfor %}
-    {%- endmacro %}
+		{%- if url.endswith('.js') %}<script type="text/javascript" src="{{ url }}"></script>{%- endif %}
+		{%- if url.endswith('.css') %}<link rel="stylesheet" type="text/css" href="{{ url }}" />{%- endif %}
+		{%- if url.endswith('.less') %}<link rel="stylesheet/less" type="text/css" href="{{ url }}" />{%- endif %}
+	{%- endmacro %}
+	{%- macro assets_for(bundle) %}
+		{%- for url in bundle.urls() %}
+			{{ asset(url) }}
+		{%- endfor %}
+	{%- endmacro %}
 
 Assume ``Flask`` and ``g.all_styles = all_styles``::
 
@@ -153,8 +153,8 @@ As an example, the naive ``uglifyjs`` filter used herein, looks like this::
 
 			if proc.returncode != 0:
 				raise FilterError(('uglifyjs: subprocess had error: stderr=%s, '+
-	                               'stdout=%s, returncode=%s') % (
-	                                    stderr, stdout, proc.returncode))
+								   'stdout=%s, returncode=%s') % (
+										stderr, stdout, proc.returncode))
 
 			yield stdout
 
