@@ -3,13 +3,6 @@ import pytest; expectedFailure = pytest.mark.xfail
 
 from ass.ets.workers import filter, Incompatible, Pipe
 
-class Symbol(object):
-	pass
-
-items = Symbol()
-contents = Symbol()
-
-# @ensure(items % contents)
 @filter(yields='items')
 def yields_items(items):
 	for item in items:
