@@ -35,11 +35,13 @@ class Worker(_Worker):
     def __name__(self):
         return self.target.__name__
     
-def _worker(func, accepts=anything, yields=anything):
+def _get_kw_arguments(func):
     spec = inspect.getargspec(func)
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
-    kw_args = spec.args[-args_with_defaults:]
-    possible_one_step = len(spec.args) == 1
+    return spec.args[-(args_with_defaults):]
+
+def _worker(func, accepts=anything, yields=anything):
+    kw_args = _get_kw_arguments(func)
 
     @wraps(func)
     def bind(*a, **kw):
