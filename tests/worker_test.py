@@ -1,7 +1,7 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-from ass.ets.workers import filter, Incompatible, Pipe
+from ass.ets.workers import filter, Incompatible, Pipe, discover_filters
 
 @filter(yields='items')
 def yields_items(items):
@@ -110,6 +110,15 @@ class EnsureInformalTypesTest(unittest.TestCase):
 		assert filter(f).__name__ == 'f'
 		assert filter(f)('a').__name__ == 'f'
 
+	def testDiscoverFilters(self):
+		@filter
+		def a(i): pass
+
+		@filter 
+		def b(i): pass
+
+		assert discover_filters(locals()) == ['a', 'b']
+
 
 class ThreeStepUsageOfWorkers(unittest.TestCase):
 	def testEnsureTwoStepUsageOfKeywordedArgument(self):
@@ -154,6 +163,7 @@ class ThreeStepUsageOfWorkers(unittest.TestCase):
 
 
 		assert [1,2] | echo == [1,2]
+
 
 
 

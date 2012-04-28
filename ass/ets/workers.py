@@ -80,6 +80,14 @@ def worker(func=None, accepts=anything, yields=anything):
 
 filter = worker
 
+def discover_filters(module):
+    """Helper for the usual
+
+            __all__ = discover_filters(globals())
+        
+    """
+    return [symbol for symbol, code in module.iteritems() if getattr(code, 'original_function', False)]
+
 class Pipe(list):
     def __init__(self, seq):
         if not hasattr(seq, '__iter__'):

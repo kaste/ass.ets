@@ -3,7 +3,7 @@ import hashlib
 
 import ass.ets 
 import ass.ets.bundles
-from ass.ets.workers import filter, Incompatible
+from ass.ets.workers import filter, Incompatible, discover_filters
 
 class FilterError(Exception): pass
 
@@ -183,3 +183,6 @@ def automatic(files, bundle):
 		pipe = _get_pipe_for(ext, bundle)
 		for thing in pipe.apply(files, bundle):
 			yield thing
+
+
+__all__ = discover_filters(globals())
