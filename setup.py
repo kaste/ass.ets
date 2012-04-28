@@ -20,7 +20,7 @@ setup(
 	download_url='http://github.com/kaste/ass.ets/tarball/master#egg=ass.ets-dev',
 	packages=find_packages(exclude=['tests']),
 	install_requires=['useless.pipes'],
-	tests_require=['pytest', 'unittest2', 'cssmin'],
+	tests_require=['pytest', 'unittest2', 'mockito', 'cssmin'],
 	classifiers= [
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
