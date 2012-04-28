@@ -37,7 +37,7 @@ class Worker(_Worker):
 def _worker(func, accepts=anything, yields=anything):
     spec = inspect.getargspec(func)
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
-    kw_args = spec.args[args_with_defaults:]
+    kw_args = spec.args[-args_with_defaults:]
     possible_one_step = len(spec.args) == 1
 
     bound_kw = {}
@@ -46,7 +46,7 @@ def _worker(func, accepts=anything, yields=anything):
         # in python we can def f(a, b=1) => f(a=1, b=2)
         # t.i. a positional arg can be treated as if it were a kw argument
         # but this shouldn't trigger three-step, only e.g. f(b=2)
-        if kw and not a and set(kw_args).difference(kw):
+        if kw and not a and not set(kw).difference(kw_args):
             bound_kw.update(kw)
             return bind
 
