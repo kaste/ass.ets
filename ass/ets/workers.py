@@ -20,11 +20,11 @@ class Worker(_Worker):
         return super(Worker, self).__ror__(left)
 
     def accepts(self, symbol=None):
-        accepts = self.target.original_function.accepts
+        accepts = self.target.accepts #self.target.original_function.accepts
         return (symbol in accepts or accepts == anything) if symbol else accepts
 
     def yields(self, symbol=None):
-        yields = self.target.original_function.yields
+        yields = self.target.yields #self.target.original_function.yields
         return (symbol in yields or yields == anything) if symbol else yields
 
     @property
@@ -41,7 +41,7 @@ def _worker(func, accepts=anything, yields=anything):
     kw_args = spec.args[-args_with_defaults:]
     possible_one_step = len(spec.args) == 1
 
-    bound_kw = {}
+    @wraps(func)
     def bind(*a, **kw):
         # trigger three step process if kw has only keyword arguments
         # in python we can def f(a, b=1) => f(a=1, b=2)
@@ -54,16 +54,11 @@ def _worker(func, accepts=anything, yields=anything):
         def apply(iter):
             return apply.original_function(iter, *a, **kw)
 
-        apply.original_function = bind.original_function
-        apply.__name__ = func.__name__
-        apply.__doc__ = func.__doc__
         return Worker(apply)
 
-    bind.accepts = func.accepts = accepts 
-    bind.yields  = func.yields  = yields 
+    bind.accepts = accepts
+    bind.yields  = yields
     bind.original_function = func
-    bind.__name__ = func.__name__
-    bind.__doc__ = func.__doc__
 
     def decorate_with(f):
         bind.original_function = f(bind.original_function)
