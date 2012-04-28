@@ -122,39 +122,28 @@ import subprocess
 import sys
 on_windows = sys.platform == 'win32'
 
+
 @filter(accepts='contents', yields='contents')
-def uglifyjs(files, bundle):
-	args = ['uglifyjs']
+def popens(files, bundle, args=None, shell=True if on_windows else False, name=None):
+	assert args is not None
+	name = name or args[0] # consider we have a good name on the first argument which is the binary
+
 	for file in files:
 		proc = subprocess.Popen(
 			args,
 			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-			shell=True if on_windows else False)
+			shell=shell)
 		stdout, stderr = proc.communicate(file)
 
 		if proc.returncode != 0:
-			raise FilterError(('uglifyjs: subprocess had error: stderr=%s, '+
+			raise FilterError(('%s: subprocess had error: stderr=%s, '+
                                'stdout=%s, returncode=%s') % (
-                                    stderr, stdout, proc.returncode))
+                                    name, stderr, stdout, proc.returncode))
 
 		yield stdout
-
-@filter(accepts='contents', yields='contents')
-def lessify(files, bundle):		
-	args = ['lessc', '-']
-	for file in files:
-		proc = subprocess.Popen(
-			args,
-			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-			shell=True if on_windows else False)
-		stdout, stderr = proc.communicate(file)
-
-		if proc.returncode != 0:
-			raise FilterError(('lessc: subprocess had error: stderr=%s, '+
-                               'stdout=%s, returncode=%s') % (
-                                    stderr, stdout, proc.returncode))
-
-		yield stdout
+	
+uglifyjs = popens(args=['uglifyjs'])
+lessify = popens(args=['lessc', '-'])
 
 from cssminify import *				
 
