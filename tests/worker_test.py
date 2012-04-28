@@ -1,101 +1,170 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-# from useless.pipes import worker
-from useless.pipes.pipes import Worker as _Worker
+from ass.ets.workers import filter, Incompatible, Pipe, discover_filters
 
-class Incompatible(Exception): pass
-
-class Worker(_Worker):
-    def __ror__(self, left):
-    	try:
-    		# print 'L', left.target.wrapped_func
-    		(lin, lout) = left.target.wrapped_func.ensure
-    		(rin, rout) = self.target.wrapped_func.ensure
-    		# print '++', lout, rin
-    		if lout and rin and lout not in rin:
-    			raise Incompatible('Incompatible left: %s to right: %s' % (lout, rin))
-    	except AttributeError:
-    		pass
-
-    	return super(Worker, self).__ror__(left)
-    
-def _worker(func):
-    def wrapper(*a, **kw):
-        def f(iter):
-            return func(iter, *a, **kw)
-        f.wrapped_func = func
-        f.__name__ = func.__name__
-        return Worker(f)
-    
-    return wrapper
-
-
-def worker(func=None,accept=None, spits=None):
-	if func:
-		return _worker(func)
-
-	# if accept is None and spits is None:
-	#     def wrapper(*a, **kw):
-	#         def f(iter):
-	#             return func(iter, *a, **kw)
-	#         f.wrapped_func = func
-	#         f.__name__ = func.__name__  + 'WRAPPED'
-	#         return Worker(f)
-	    
-	#     return wrapper
-
-	def wrap(f):
-		f.ensure = (accept, spits)
-		return _worker(f)
-
-	return wrap   
-
-def ensure(in_=None, out=None):
-
-	def wrapp(f):
-		f.ensure = (in_, out)
-		return f
-
-	return wrapp
-
-declare = ensure
-
-
-class Symbol(object):
-	pass
-
-items = Symbol()
-contents = Symbol()
-
-# @ensure(items % contents)
-@worker(accept='items', spits='items')
-# @ensure(in_='items', out='items')
-def echo(items):
+@filter(yields='items')
+def yields_items(items):
 	for item in items:
 		yield item
 
-@worker(accept='contents')
-# @ensure(in_='contents')
-def failing(contents):
+@filter(accepts='items')
+def accepts_items(items):
+	for item in items:
+		yield item
+
+@filter(accepts='contents')
+def accepts_contents(contents):
 	yield 'blub'
 
-class EnsureTest(unittest.TestCase):
-	def testEnsure(self):
+@filter
+def anything(items):
+	for item in items:
+		yield item
 
-		print echo
-		# print echo.ensure
-		w = echo()
+class EnsureInformalTypesTest(unittest.TestCase):
+	def testIncomatible(self):
 		try:
-			assert [1,2] | w | w | failing() == ['blub']
+			assert [1,2] | yields_items() | accepts_contents() == ['blub']
 			self.fail()
-		except Incompatible,e :
-			print e
+		except Incompatible:
+			pass
 
-		print repr(w)
-		print w.target
-		print w.target.ensure
+	def testCompatible(self):
+		try:
+			assert [1,2] | yields_items() | accepts_items() == [1,2]
+		except:
+			raise
+			# self.fail()
+
+	def testUnspecifiedMeansAnything(self):
+		try:
+			assert [1,2] | anything() | anything() == [1,2]
+		except:
+			raise
+			# self.fail()
+
+	def testAccessOriginalFunc(self):
+		def origin(items):
+			for i in items: yield i
+
+		wrapped = filter(origin)
+
+		assert wrapped.original_function == origin
+
+	def testFurtherDecorate(self):
+		@filter
+		def origin(items):
+			for i in items: yield i
+
+		state = [1]
+		def decorator(f):
+			def decorated(i, *a, **kw):
+				state.append(2)
+				return f(i, *a, **kw)
+			return decorated
+
+		origin.decorate_with(decorator)
+
+		assert [1,2] | origin() == [1,2]
+		assert state == [1, 2]
+
+	def testAskFilterWhatItAcceptsAndYields(self):
+		@filter(accepts='filenames', yields='contents')
+		def f(items):
+			for i in items: yield i
+
+		assert f.accepts == 'filenames'
+		assert f.yields == 'contents'
+
+	def testAskActualWorkerWhatHeAcceptsOrYields(self):
+		@filter(accepts='filenames', yields='contents')
+		def f(items):
+			for i in items: yield i
+
+		worker = f()
+		assert worker.accepts() == 'filenames'
+		assert worker.yields() == 'contents'
+
+	def testAskPipeWhatItAcceptsAndYields(self):
+		@filter(accepts='a b', yields='b c')
+		def f(items):
+			for i in items: yield i
+
+		pipe = Pipe([f])
+		assert pipe.accepts('a')
+		assert pipe.yields('c')
+
+		assert pipe.accepts() == 'a b'
+		assert pipe.yields() == 'b c'
+
+	def testDocStrings(self):
+		doc = "Echoes"
+		def f(items, a):
+			for i in items: yield i
+		f.__doc__ = doc
+
+		assert filter(f).__doc__ == doc
+		assert filter(f)('a').__doc__ == doc
+
+		assert filter(f).__name__ == 'f'
+		assert filter(f)('a').__name__ == 'f'
+
+	def testDiscoverFilters(self):
+		@filter
+		def a(i): pass
+
+		@filter 
+		def b(i): pass
+
+		assert discover_filters(locals()) == ['a', 'b']
 
 
-		assert False
-		pass
+class ThreeStepUsageOfWorkers(unittest.TestCase):
+	def testEnsureTwoStepUsageOfKeywordedArgument(self):
+		state = [1]
+		@filter
+		def w(items, a, b=state):
+			state.append(2)
+			for i in items: yield i
+
+		[1,2] | w('a') == [1,2]
+		assert state == [1,2]
+
+		state = [3]
+		[1,2] | w('a', b=state) == [1,2]
+		assert state == [3,2]
+
+		state = [5]
+		[1,2] | w(b=state, a='a') == [1,2]
+		assert state == [5,2]
+
+	def testThreeSteps(self):
+		@filter
+		def w(items, a, b=None, c='c'):
+			b.append(c)
+			for i in items: yield i
+
+		state = [1]
+		[1,2] | w(b=state)('a') == [1,2]
+		assert state == [1,'c']
+
+		state_b = [2]
+		[1,2] | w(b=state_b, c='d')('a') == [1,2]
+		assert state == [1,'c']
+		assert state_b == [2,'d']
+
+		assert w(b=[1,]).__name__ == 'w'
+
+	def _testPossibleOneStep(self):
+		@filter
+		def echo(items):
+			for i in items: yield i
+
+
+		assert [1,2] | echo == [1,2]
+
+
+
+
+

@@ -1,7 +1,7 @@
-from useless.pipes import worker
+from ass.ets.workers import filter
 
 
-@worker
+@filter(accepts='contents', yields='contents')
 def cssminify(files, bundle):
 	import cssmin
 
