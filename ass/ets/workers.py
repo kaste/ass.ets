@@ -48,7 +48,7 @@ def _worker(func, accepts=anything, yields=anything):
         # t.i. a positional arg can be treated as if it were a kw argument
         # but this shouldn't trigger three-step, only e.g. f(b=2)
         if kw and not a and not set(kw).difference(kw_args):
-            return partial(bind, *a, **kw)
+            return wraps(bind) (partial(bind, *a, **kw))
 
         @wraps(bind)
         def apply(iter):

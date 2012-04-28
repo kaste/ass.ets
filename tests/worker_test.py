@@ -145,6 +145,8 @@ class ThreeStepUsageOfWorkers(unittest.TestCase):
 		assert state == [1,'c']
 		assert state_b == [2,'d']
 
+		assert w(b=[1,]).__name__ == 'w'
+
 	def _testPossibleOneStep(self):
 		@filter
 		def echo(items):
