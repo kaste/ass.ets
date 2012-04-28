@@ -132,13 +132,18 @@ class ThreeStepUsageOfWorkers(unittest.TestCase):
 
 	def testThreeSteps(self):
 		@filter
-		def w(items, a, b=None):
-			state.append(2)
+		def w(items, a, b=None, c='c'):
+			b.append(c)
 			for i in items: yield i
 
 		state = [1]
 		[1,2] | w(b=state)('a') == [1,2]
-		assert state == [1,2]
+		assert state == [1,'c']
+
+		state_b = [2]
+		[1,2] | w(b=state_b, c='d')('a') == [1,2]
+		assert state == [1,'c']
+		assert state_b == [2,'d']
 
 	def _testPossibleOneStep(self):
 		@filter

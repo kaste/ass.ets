@@ -1,6 +1,7 @@
 # from useless.pipes import worker
 import inspect 
 from useless.pipes.pipes import Worker as _Worker
+from functools import partial, wraps, update_wrapper
 
 class Incompatible(Exception): pass
 
@@ -47,10 +48,9 @@ def _worker(func, accepts=anything, yields=anything):
         # t.i. a positional arg can be treated as if it were a kw argument
         # but this shouldn't trigger three-step, only e.g. f(b=2)
         if kw and not a and not set(kw).difference(kw_args):
-            bound_kw.update(kw)
-            return bind
+            return partial(bind, *a, **kw)
 
-        kw.update(bound_kw)
+        @wraps(bind)
         def apply(iter):
             return apply.original_function(iter, *a, **kw)
 
