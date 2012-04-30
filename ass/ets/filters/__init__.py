@@ -126,7 +126,7 @@ on_windows = sys.platform == 'win32'
 @filter(accepts='contents', yields='contents')
 def popens(files, bundle, args=None, shell=True if on_windows else False, name=None):
 	assert args is not None
-	name = name or args[0] # consider we have a good name on the first argument which is the binary
+	name = name or args[0] # assume we have a good name on the first argument which is the binary
 
 	for file in files:
 		proc = subprocess.Popen(
@@ -174,4 +174,4 @@ def automatic(files, bundle):
 			yield thing
 
 
-__all__ = discover_filters(globals())
+__all__ = discover_filters(globals()) + ['store_as',]
