@@ -116,24 +116,30 @@ def merge(contents, bundle):
 	"""
 	yield ''.join(contents)
 
-def store_as(filename_):
-	versioned = '%(version)s' in filename_
+@filter(accepts='contents', yields='filenames')
+def store(contents, bundle, name=None):
+	"""Writes the given contents to disc. You must provide a name. 
+	A '%(version)s' tag in the name gets replaced by hashing the content. 
+	"""
+	assert name is not None
+	versioned = '%(version)s' in name
+	
+	for content in contents:
+		filename = name
+		if versioned:
+			hash = hashlib.md5(content).hexdigest()[:8]
+			filename = filename % dict(version=hash) 
 
-	@filter(accepts='contents', yields='filenames')
-	def store_as_(contents, bundle):
-		for content in contents:
-			filename = filename_
-			if versioned:
-				hash = hashlib.md5(content).hexdigest()[:8]
-				filename = filename % dict(version=hash) 
+		full_path = os.path.join(bundle.map_from, filename)
+		with open(full_path, 'wb') as file:
+			file.write(content)
 
-			full_path = os.path.join(bundle.map_from, filename)
-			with open(full_path, 'wb') as file:
-				file.write(content)
+		yield filename 
 
-			yield filename 
+def store_as(name):
+	"""The same as calling store(name=name)"""
+	return store(name=name)
 
-	return store_as_		
 
 #
 
