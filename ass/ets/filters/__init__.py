@@ -101,11 +101,13 @@ def read(items, bundle):
 
 @filter(accepts='contents', yields='contents')
 def merge(contents, bundle):
-	rv = ''
-	for content in contents:
-		rv += content
+	"""Merge the contents of files. 
 
-	yield rv
+		['a', 'b'] | merge(bundle=None) == ['ab']
+
+
+	"""
+	yield ''.join(contents)
 
 def store_as(filename_):
 	versioned = '%(version)s' in filename_
