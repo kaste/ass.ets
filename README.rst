@@ -2,7 +2,7 @@ The main purpose of an assets management application is to map local paths to ur
 
 Since I was just too dumb to use miracle2k's `webassets <https://github.com/miracle2k/webassets>`_ - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
 
-As this is alpha, it is enterprisey, industrial-stengthy and just might not work. In the following walk-through we use three 'real' filters; you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these, but it's easy to write your own filters as you will see. Please contribute via `github <http://github.com/kaste/ass.ets>`_. 
+In the following walk-through we use three external filters; you usually need `node <http://nodejs.org/>`_ with `uglifyjs <https://github.com/mishoo/UglifyJS>`_ and/or `lessc <http://lesscss.org>`_; to minify css the python package `cssmin <https://github.com/zacharyvoase/cssmin>`_ is used. You could also use `cleancss <https://github.com/GoalSmashers/clean-css>`_ and `coffeescript <http://coffeescript.org/>`_ . So you need to install some of these separately, but it's easy to write your own filters as you will see. Please contribute via `github <http://github.com/kaste/ass.ets>`_. 
 
 ::
 
@@ -56,7 +56,7 @@ Internally ``build()`` appends the following filter to the chain::
 		for file in files:
 			yield os.path.join(bundle.map_from, file)
 
-Each ``@filter`` is effectively a ``worker`` from the `useless.pipes <http://pypi.python.org/pypi/useless.pipes>`_ package, which provides sugar for chaining generators. The filter-functions have a specific signature: the first argument always is the iterable from the previous filter. In case it's the first filter in the chain, it is the file-list you want to bundle. The second argument is the bundle we currently process. After that you may provide optional keyword arguments. See below.
+Each ``@filter`` is effectively a ``worker`` from the `useless.pipes <http://pypi.python.org/pypi/useless.pipes>`_ package, which provides sugar for chaining generators. The filter-functions have a specific signature: the first argument always is the iterable from the previous filter. In case it's the first filter in the chain, it is the file-list you want to bundle. The second argument is the bundle we currently process. After that you may provide optional keyword arguments.
 
 Ok, add another bundle::
 
@@ -142,9 +142,15 @@ A filter that combines other filters by the way looks rather awkward, just to le
 	def read_and_merge(items, bundle):
 		return items | read(bundle) | merge(bundle)
 
-As an example, the naive ``uglifyjs`` filter used herein, looks like this::
+As an example, some filters used herein::
 
 	uglifyjs = popens(args=['uglifyjs'])
+	lessify  = popens(args=['lessc', '-'])
+	cleancss = popens(args=['cleancss'])
+
+	def decaffeinate(bin='coffee', bare=False):
+		args = [bin, '-sp' + 'b' if bare else '']
+		return popens(args=args)
 
 	# where popens is defined like
 
