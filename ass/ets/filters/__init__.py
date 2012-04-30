@@ -157,12 +157,12 @@ def popens(files, bundle, args=None, shell=True if on_windows else False, name=N
 	assert args is not None
 	name = name or args[0] # assume we have a good name on the first argument which is the binary
 
-	for file in files:
+	for content in files:
 		proc = subprocess.Popen(
 			args,
 			stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 			shell=shell)
-		stdout, stderr = proc.communicate(file)
+		stdout, stderr = proc.communicate(content)
 
 		if proc.returncode != 0:
 			raise FilterError(('%s: subprocess had error: stderr=%s, '+
@@ -172,7 +172,7 @@ def popens(files, bundle, args=None, shell=True if on_windows else False, name=N
 		yield stdout
 	
 uglifyjs = popens(args=['uglifyjs'])
-lessify = popens(args=['lessc', '-'])
+lessify  = popens(args=['lessc', '-'])
 cleancss = popens(args=['cleancss'])
 
 def decaffeinate(bin='coffee', bare=False):
