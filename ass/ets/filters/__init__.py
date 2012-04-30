@@ -32,7 +32,7 @@ def translate_path(files, bundle):
 @filter(accepts='filenames', yields='filenames')
 def relative_path(files, bundle, root=None):
 	assert root is not None
-	
+
 	for file in files:
 		yield os.path.relpath(file, root)
 
@@ -174,6 +174,11 @@ def popens(files, bundle, args=None, shell=True if on_windows else False, name=N
 uglifyjs = popens(args=['uglifyjs'])
 lessify = popens(args=['lessc', '-'])
 
+def decaffeinate(bin='coffee', bare=False):
+	args = [bin, '-sp' + 'b' if bare else '']
+	return popens(args=args)
+
+
 from cssminify import *				
 
 
@@ -203,4 +208,4 @@ def automatic(files, bundle):
 			yield thing
 
 
-__all__ = discover_filters(globals()) + ['store_as',]
+__all__ = discover_filters(globals()) + ['store_as', 'decaffeinate']

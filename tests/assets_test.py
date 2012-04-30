@@ -350,3 +350,9 @@ class FiltersTest(unittest.TestCase):
 
 		assert [css] | f.cssminify(None) | list == ['p{color:#aaa}']
 
+	def testCoffee(self):
+
+		cs = 'square = (x) -> x * x'
+
+		assert [cs] | f.decaffeinate(bare=True)(None) | list == ['var square;\n\nsquare = function(x) {\n  return x * x;\n};\n']
+
