@@ -55,22 +55,32 @@ def as_is(files, bundle):
 			yield file
 
 @filter(yields='filenames')
-def ask_manifest(files, bundle):
+def ask_manifest(files, bundle, key=None):
+	"""Assumes a Manifest on bundle.manifest which answers get(key). 
+	By default the bundle's name is used as the key.
+	Yields one or more local paths.
+	"""
 	# we need to consume the given iterator
 	for file in files: pass
 
-	for file in bundle.manifest.get(bundle.name):
+	key = key or bundle.name
+	for file in bundle.manifest.get(key):
 		yield file
 
 use_manifest = ask_manifest
 
 @filter(accepts='filenames', yields='filenames')
-def store_manifest(files, bundle):
+def store_manifest(files, bundle, key=None):
+	"""Assumes a Manifest on bundle.manifest which answers set(key, value).
+	By default the bundle's name is used as the key. The value is a 
+	list of local paths.
+	"""
 	filenames = []
 	for file in files:
 		filenames.append(file)
 		yield file
 
+	key = key or bundle.name
 	bundle.manifest.set(bundle.name, filenames)
 
 @filter(accepts='filenames', yields='contents')
