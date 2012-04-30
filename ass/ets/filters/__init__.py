@@ -173,6 +173,7 @@ def popens(files, bundle, args=None, shell=True if on_windows else False, name=N
 	
 uglifyjs = popens(args=['uglifyjs'])
 lessify = popens(args=['lessc', '-'])
+cleancss = popens(args=['cleancss'])
 
 def decaffeinate(bin='coffee', bare=False):
 	args = [bin, '-sp' + 'b' if bare else '']

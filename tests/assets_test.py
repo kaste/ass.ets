@@ -356,3 +356,8 @@ class FiltersTest(unittest.TestCase):
 
 		assert [cs] | f.decaffeinate(bare=True)(None) | list == ['var square;\n\nsquare = function(x) {\n  return x * x;\n};\n']
 
+	def testCleanCss(self):
+		css = 'p\n{color:#aaa;}'
+
+		assert [css] | f.cleancss(None) | list == ['p{color:#aaa}']
+
