@@ -120,29 +120,7 @@ Assume ``Flask`` and ``g.all_styles = all_styles``::
 
 and we're done.
 
-Some last things; if you often write::
-	
-	[read, merge, uglifyjs, store_as('...'), store_manifest]
-
-You could instead write something like this::
-
-	# no magic here, just list + list
-	process_js = [read, merge, uglifyjs]
-	jslib.build_ = process_js + [store_as('...'), store_manifest]
-
-OR::
-	
-	def process_js_and_store(fn):
-		return [read, merge, uglifyjs, store_as(fn), store_manifest]
-	jslib.build_ = process_js_and_store('...')
-
-A filter that combines other filters by the way looks rather awkward, just to let you know::
-
-	@filter
-	def read_and_merge(items, bundle):
-		return items | read(bundle) | merge(bundle)
-
-As an example, some filters used herein::
+As an example, some builtin filters::
 
 	uglifyjs = popens(args=['uglifyjs'])
 	lessify  = popens(args=['lessc', '-'])
@@ -173,8 +151,31 @@ As an example, some filters used herein::
 
 			yield stdout
 
-Here, we use keyword arguments to 'customize' a filter. Say ``uglifyjs`` is not in your path, you could then redefine this filter::
+That's the real code. We use keyword arguments to 'customize' a filter, or make a filter from a filter. Say ``uglifyjs`` is not in your path, you could then redefine this filter::
 
 	uglifyjs = popens(args=['C:\\....'], shell=False, name='uglify')	
+
+Some last things; if you often write::
+	
+	[read, merge, uglifyjs, store_as('...'), store_manifest]
+
+You could instead write something like this::
+
+	# no magic here, just list + list
+	process_js = [read, merge, uglifyjs]
+	jslib.build_ = process_js + [store_as('...'), store_manifest]
+
+OR::
+	
+	def process_js_and_store(fn):
+		return [read, merge, uglifyjs, store_as(fn), store_manifest]
+	jslib.build_ = process_js_and_store('...')
+
+A filter that combines other filters by the way looks rather awkward, just to let you know::
+
+	@filter
+	def read_and_merge(items, bundle):
+		return items | read(bundle) | merge(bundle)
+
 
 Contribute back to `dev <http://github.com/kaste/ass.ets/tarball/master#egg=ass.ets-dev>`_ if you like.
