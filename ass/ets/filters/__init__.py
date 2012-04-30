@@ -9,12 +9,14 @@ class FilterError(Exception): pass
 
 @filter(accepts='filenames', yields='filenames')
 def local_path(files, bundle):
+	"""Expects relative paths and yields absolute paths using bundle.map_from."""
 	for file in files:
 		yield os.path.join(bundle.map_from, file)
 
 
 @filter(accepts='filenames', yields='filenames')
 def remote_path(files, bundle):
+	"""Expects relative paths and yields urls by using bundle.map_to."""
 	for file in files:
 		if os.path.isabs(file):
 			yield file
@@ -39,6 +41,8 @@ def echo(items, bundle):
 
 @filter(accepts='filenames', yields='filenames')
 def as_is(files, bundle):
+	"""Just echoes filenames, but for nested bundles yields what they yield.
+	"""
 	for file in files:
 		if isinstance(file, ass.ets.Bundle):
 			bundle = file
@@ -85,6 +89,9 @@ def store_manifest(files, bundle, key=None):
 
 @filter(accepts='filenames', yields='contents')
 def read(items, bundle):
+	"""Reads the files and yields their contents. For nested bundles, just yields
+	whatever they yield.  
+	"""
 	for item in items:
 		if isinstance(item, ass.ets.Bundle):
 			bundle = item
@@ -137,6 +144,8 @@ on_windows = sys.platform == 'win32'
 
 @filter(accepts='contents', yields='contents')
 def popens(files, bundle, args=None, shell=True if on_windows else False, name=None):
+	"""Standard subprocess.Popen that expects a pipe on stdin and stdout.
+	"""
 	assert args is not None
 	name = name or args[0] # assume we have a good name on the first argument which is the binary
 
