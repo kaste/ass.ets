@@ -2,7 +2,7 @@ The main purpose of an assets management application is to map local paths to ur
 
 Since I was just too dumb to use miracle2k's `webassets <https://github.com/miracle2k/webassets>`_ - did three days to write a new filter, new manifest implementation, then the ASSETS tag for jinja didn't liked my multiple environments - I put together this simple stuff.
 
-As this is alpha, it is enterprisey, industrial-stengthy and just might not work. In the following we use three filters; of course you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these or write your own filters. Please contribute via `github <http://github.com/kaste/ass.ets>`_. 
+As this is alpha, it is enterprisey, industrial-stengthy and just might not work. In the following walk-through we use three 'real' filters; you need ``node`` with ``uglifyjs`` and/or ``lessc``; to minify css the python package ``cssmin`` is used. So you need to install these, but it's easy to write your own filters as you will see. Please contribute via `github <http://github.com/kaste/ass.ets>`_. 
 
 ::
 
@@ -17,24 +17,27 @@ As this is alpha, it is enterprisey, industrial-stengthy and just might not work
 		map_to='/static',
 		# t.i. a local file ./static/lib.js will later be served as /static/lib.js
 		
-		#use the default implementation
-		manifest=os.path.join(here, 'assets-manifest'),   # we don't want the manifest in the static dir
+		# use the default implementation of our manifest
+		# we don't want the manifest in the static dir, so we provide an absolute path
+		manifest=os.path.join(here, 'assets-manifest'),   
 		#or provide your own object that answers get(key) and set(key, value)
 		
-		#some defaults
-		production=use_manifest #in production mode we ask the manifest which file to serve, in this case we need to build before we deploy
+		# in production mode we ask the manifest which file to serve, in this case 
+		# we need to build at least once before we deploy
+		production=use_manifest 
 		#note: use_manifest is just another filter
 	)
 
 	jslib = bundle(
 		"jquery.1.7.1.js", #...
-		name='jslib',   # the naive manifest implementation uses this name
+		name='jslib',   # the naive manifest implementation uses this name as its key
 		env=env,        # the bundle inherits all the settings from env 
 
-		#very explicit pipe of filters
+		# very explicit chain of filters
 		development=[read, merge, store_as('jslib.js')],
 		build_=[read, merge, uglifyjs, store_as('jslib-%(version)s.js'), store_manifest],
-		#yes ^ thats an underscore, because bundles have a build() method
+		# yes ^ thats an underscore, because bundles have a build() method
+		# uglifyjs assumes you have node's uglifyjs in your path, see below on how to cutomize this
 	)
 
 	# now we could do
@@ -48,12 +51,12 @@ As this is alpha, it is enterprisey, industrial-stengthy and just might not work
 There's is no much difference between ``urls()`` and ``build()``. In the above example both pipes - 'development' and '\built_' - yield relative paths at the end, ``urls()`` just uses ``env.map_to`` to construct a url, where ``build()`` maps to the local path using ``map_from``.
 Internally ``build()`` appends the following filter to the chain::
 
-	@worker
+	@filter(accepts='filenames', yields='filenames')
 	def local_path(files, bundle):
 		for file in files:
 			yield os.path.join(bundle.map_from, file)
 
-The ``@worker`` annotation comes from the `useless.pipes <http://pypi.python.org/pypi/useless.pipes>`_ package.
+Each ``@filter`` is effectively a ``worker`` from the `useless.pipes <http://pypi.python.org/pypi/useless.pipes>`_ package, which provides sugar for chaining generators. The filter-functions have a specific signature: the first argument always is the iterable from the previous filter. In case it's the first filter in the chain, it is the file-list you want to bundle. The second argument is the bundle we currently process. After that you may provide optional keyword arguments. See below.
 
 Ok, add another bundle::
 
@@ -69,7 +72,7 @@ Ok, add another bundle::
 		name='all_styles',
 		env=env,
 		development=as_is,
-		build_=[read, merge, minify, store_as('styles-%(version)s.css'), store_manifest]
+		build_=[read, merge, cssminify, store_as('styles-%(version)s.css'), store_manifest]
 	)
 
 T.i. in development mode we just spit the files as they are, when we build the less-file gets 'delessed', after that all css-files are merged and stored. Note that the `less_styles.build_` chain yields the css-content. We don't store a temporary file. The current implementation of `read` actually expects nested bundles to yield contents not filenames. 
@@ -77,7 +80,7 @@ T.i. in development mode we just spit the files as they are, when we build the l
 Ok, now we need the less-js file in the development version of our app. We write a simple filter::
 
 	def add(*filenames):
-		@worker
+		@filter
 		def add_(items, bundle):
 			for item in items:
 				yield item
@@ -123,9 +126,9 @@ Some last things; if you often write::
 
 You could instead write something like this::
 
-	# no magic here, just tuple + tuple
-	process_js = (read, merge, uglifyjs)
-	jslib.build_ = process_js + (store_as('...'), store_manifest)
+	# no magic here, just list + list
+	process_js = [read, merge, uglifyjs]
+	jslib.build_ = process_js + [store_as('...'), store_manifest]
 
 OR::
 	
@@ -133,29 +136,39 @@ OR::
 		return [read, merge, uglifyjs, store_as(fn), store_manifest]
 	jslib.build_ = process_js_and_store('...')
 
-A worker that combines other filters by the way looks rather awkward, just to let you know::
+A filter that combines other filters by the way looks rather awkward, just to let you know::
 
-	@worker
+	@filter
 	def read_and_merge(items, bundle):
 		return items | read(bundle) | merge(bundle)
 
 As an example, the naive ``uglifyjs`` filter used herein, looks like this::
 
-	@worker
-	def uglifyjs(files, bundle):
-		args = ['uglifyjs']
+	uglifyjs = popens(args=['uglifyjs'])
+
+	# where popens is defined like
+
+	@filter(accepts='contents', yields='contents')
+	def popens(files, bundle, args=None, shell=True if on_windows else False, name=None):
+		assert args is not None
+		name = name or args[0] # assume we have a good name on the first argument which is the binary
+
 		for file in files:
 			proc = subprocess.Popen(
 				args,
 				stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-				shell=True)
+				shell=shell)
 			stdout, stderr = proc.communicate(file)
 
 			if proc.returncode != 0:
-				raise FilterError(('uglifyjs: subprocess had error: stderr=%s, '+
-								   'stdout=%s, returncode=%s') % (
-										stderr, stdout, proc.returncode))
+				raise FilterError(('%s: subprocess had error: stderr=%s, '+
+	                               'stdout=%s, returncode=%s') % (
+	                                    name, stderr, stdout, proc.returncode))
 
 			yield stdout
 
-This filter likely fails because of ``args = ['uglifyjs']`` and ``shell=True``. So contribute back to `dev <http://github.com/kaste/ass.ets/tarball/master#egg=ass.ets-dev>`_.
+Here, we use keyword arguments to 'customize' a filter. Say ``uglifyjs`` is not in your path, you could then redefine this filter::
+
+	uglifyjs = popens(args=['C:\\....'], shell=False, name='uglify')	
+
+Contribute back to `dev <http://github.com/kaste/ass.ets/tarball/master#egg=ass.ets-dev>`_ if you like.
