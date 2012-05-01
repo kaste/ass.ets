@@ -126,9 +126,10 @@ As an example, some builtin filters::
 	lessify  = popens(args=['lessc', '-'])
 	cleancss = popens(args=['cleancss'])
 
-	def decaffeinate(bin='coffee', bare=False):
+	@filter(accepts='contents', yields='contents')
+	def decaffeinate(files, bundle, bin='coffee', bare=False):
 		args = [bin, '-sp' + 'b' if bare else '']
-		return popens(args=args)
+		return files | popens(bundle, args=args)
 
 	# where popens is defined like
 

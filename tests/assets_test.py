@@ -354,7 +354,7 @@ class FiltersTest(unittest.TestCase):
 
 		cs = 'square = (x) -> x * x'
 
-		assert [cs] | f.decaffeinate(bare=True)(None) | list == ['var square;\n\nsquare = function(x) {\n  return x * x;\n};\n']
+		assert [cs] | f.decaffeinate(bundle=None, bare=True) | list == ['var square;\n\nsquare = function(x) {\n  return x * x;\n};\n']
 
 	def testCleanCss(self):
 		css = 'p\n{color:#aaa;}'

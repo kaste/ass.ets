@@ -175,9 +175,10 @@ uglifyjs = popens(args=['uglifyjs'])
 lessify  = popens(args=['lessc', '-'])
 cleancss = popens(args=['cleancss'])
 
-def decaffeinate(bin='coffee', bare=False):
+@filter(accepts='contents', yields='contents')
+def decaffeinate(files, bundle, bin='coffee', bare=False):
 	args = [bin, '-sp' + 'b' if bare else '']
-	return popens(args=args)
+	return files | popens(bundle, args=args)
 
 
 from cssminify import *				
@@ -209,4 +210,4 @@ def automatic(files, bundle):
 			yield thing
 
 
-__all__ = discover_filters(globals()) + ['store_as', 'decaffeinate']
+__all__ = discover_filters(globals()) + ['store_as',]
