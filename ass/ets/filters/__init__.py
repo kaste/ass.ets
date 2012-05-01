@@ -31,7 +31,10 @@ def translate_path(files, bundle):
 
 @filter(accepts='filenames', yields='filenames')
 def relative_path(files, bundle, root=None):
-	assert root is not None
+	"""Given an absolute path yields a relative one. By default uses
+	bundle.map_from as the root.
+	"""
+	root = root or bundle.map_from
 
 	for file in files:
 		yield os.path.relpath(file, root)
@@ -55,7 +58,7 @@ def as_is(files, bundle):
 			# assume the nested bundle yields relative paths with a root = subbundle.map_from
 			# first localize, so we have an absolute path
 			# then translate that path again to a relative path with the root = bundle.map_from
-			for f in iterator | local_path(file) | relative_path(bundle, root=bundle.map_from):
+			for f in iterator | local_path(file) | relative_path(bundle):
 				yield f
 		else:
 			yield file
@@ -151,7 +154,7 @@ def glob(files, bundle):
 			yield file
 		else:
 			full_path = os.path.join(bundle.map_from, file)
-			for expanded in glob_.iglob(full_path) | relative_path(bundle, root=bundle.map_from):
+			for expanded in glob_.iglob(full_path) | relative_path(bundle):
 				yield expanded
 
 
