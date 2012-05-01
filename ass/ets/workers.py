@@ -10,21 +10,20 @@ anything = '*'
 class Worker(_Worker):
     def __ror__(self, left):
         try:
-            accepts = self.accepts()
-            yields  = left.yields()
-            if accepts != anything and yields != anything and yields not in accepts:
-                raise Incompatible('Incompatible left: %s to right: %s' % (yields, accepts))
+            yields = left.yields()
+            if not all( (self.accepts(symbol) for symbol in yields.split()) ):
+                raise Incompatible('Incompatible left: %s to right: %s' % (yields, self.accepts()))
         except AttributeError:
             pass
 
         return super(Worker, self).__ror__(left)
 
     def accepts(self, symbol=None):
-        accepts = self.target.accepts #self.target.original_function.accepts
+        accepts = self.target.accepts
         return (symbol in accepts or accepts == anything) if symbol else accepts
 
     def yields(self, symbol=None):
-        yields = self.target.yields #self.target.original_function.yields
+        yields = self.target.yields
         return (symbol in yields or yields == anything) if symbol else yields
 
     @property
