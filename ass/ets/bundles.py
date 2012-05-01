@@ -6,7 +6,6 @@ except ImportError:
 	import pickle as serializer
 
 from options import Option, Options, dict_getter
-from workers import Pipe
 import filters as f
 import dicts
 
@@ -116,6 +115,28 @@ class assetslist(bundleslist):
 		else:
 			raise KeyError
 
+class Pipe(list):
+    def __init__(self, seq):
+        if not hasattr(seq, '__iter__'):
+            seq = [seq]
+
+        list.__init__(self, seq)
+
+    def accepts(self, symbol=None):
+        return self[0].accepts(symbol)
+
+    def yields(self, symbol=None):
+        return self[-1].yields(symbol)
+
+    def prepend(self, worker):
+        self.insert(0, worker)
+
+    def apply(self, iter, *a, **kw):
+        p = iter
+        for worker in self:
+            p |= worker(*a, **kw)
+
+        return p
 
 class Environment(CommonOptions): 
 	"""An Environment is just a configuration object. Consider:

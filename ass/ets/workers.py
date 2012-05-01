@@ -92,28 +92,3 @@ def discover_filters(module):
     """
     return [symbol for symbol, code in module.iteritems() if getattr(code, 'original_function', False)]
 
-class Pipe(list):
-    def __init__(self, seq):
-        if not hasattr(seq, '__iter__'):
-            seq = [seq]
-
-        list.__init__(self, seq)
-
-    def accepts(self, symbol=None):
-        accepts = self[0].accepts
-        return symbol in accepts if symbol else accepts
-
-    def yields(self, symbol=None):
-        yields = self[-1].yields
-        return symbol in yields if symbol else yields
-
-    def prepend(self, worker):
-        self.insert(0, worker)
-
-    def apply(self, iter, *a, **kw):
-        p = iter
-        for worker in self:
-            p |= worker(*a, **kw)
-
-        return p
-
