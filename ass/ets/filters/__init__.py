@@ -41,7 +41,7 @@ def echo(items, bundle):
 	for item in items:
 		yield item
 
-@filter(accepts='filenames', yields='filenames')
+@filter(accepts='filenames bundles', yields='filenames')
 def as_is(files, bundle):
 	"""Just echoes filenames, but for nested bundles yields what they yield.
 	"""
@@ -89,7 +89,7 @@ def store_manifest(files, bundle, key=None):
 	key = key or bundle.name
 	bundle.manifest.set(bundle.name, filenames)
 
-@filter(accepts='filenames', yields='contents')
+@filter(accepts='filenames bundles', yields='contents')
 def read(items, bundle):
 	"""Reads the files and yields their contents. For nested bundles, just yields
 	whatever they yield.  
