@@ -201,6 +201,7 @@ class Bundle(CommonOptions):
 
 	"""
 	name = Option()
+	output = Option()
 
 	def __init__(self, *assets, **kw):
 		super(Bundle, self).__init__(**kw)

@@ -120,10 +120,11 @@ def merge(contents, bundle):
 
 @filter(accepts='contents', yields='filenames')
 def store(contents, bundle, name=None):
-	"""Writes the given contents to disc. You must provide a name. 
+	"""Writes the given contents to disc. By default uses the name stored
+	on bundle.output. 
 	A '%(version)s' tag in the name gets replaced by hashing the content. 
 	"""
-	assert name is not None
+	name = name or bundle.output
 	versioned = '%(version)s' in name
 	
 	for content in contents:
