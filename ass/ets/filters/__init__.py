@@ -25,9 +25,9 @@ def remote_path(files, bundle):
 
 @filter(accepts='filenames', yields='filenames')
 def translate_path(files, bundle):
-	for file in files:
-		relative_part = os.path.relpath(file, bundle.map_from)
-		yield '/'.join([bundle.map_to, relative_part])
+	"""Given an absolute path, yields urls. 
+	"""
+	return files | relative_path(bundle) | remote_path(bundle)
 
 @filter(accepts='filenames', yields='filenames')
 def relative_path(files, bundle, root=None):
