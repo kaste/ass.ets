@@ -93,8 +93,8 @@ class EnsureInformalTypesTest(unittest.TestCase):
 		def f(items):
 			for i in items: yield i
 
-		assert f.accepts == 'filenames'
-		assert f.yields == 'contents'
+		assert f.accepts() == 'filenames'
+		assert f.yields() == 'contents'
 
 	def testAskActualWorkerWhatHeAcceptsOrYields(self):
 		@filter(accepts='filenames', yields='contents')

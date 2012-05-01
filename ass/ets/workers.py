@@ -19,12 +19,10 @@ class Worker(_Worker):
         return super(Worker, self).__ror__(left)
 
     def accepts(self, symbol=None):
-        accepts = self.target.accepts
-        return (symbol in accepts or accepts == anything) if symbol else accepts
+        return self.target.accepts(symbol)
 
     def yields(self, symbol=None):
-        yields = self.target.yields
-        return (symbol in yields or yields == anything) if symbol else yields
+        return self.target.yields(symbol)
 
     @property
     def __doc__(self):
@@ -39,7 +37,7 @@ def _get_kw_arguments(func):
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
     return spec.args[-(args_with_defaults):]
 
-def _worker(func, accepts=anything, yields=anything):
+def _worker(func):
     kw_args = _get_kw_arguments(func)
 
     @wraps(func)
@@ -57,8 +55,6 @@ def _worker(func, accepts=anything, yields=anything):
 
         return Worker(apply)
 
-    bind.accepts = accepts
-    bind.yields  = yields
     bind.original_function = func
 
     def decorate_with(f):
@@ -69,13 +65,22 @@ def _worker(func, accepts=anything, yields=anything):
 
 
 def worker(func=None, accepts=anything, yields=anything):
+    def _accepts(symbol=None):
+        return (symbol in accepts or anything in [accepts, symbol]) if symbol else accepts
+    def _yields(symbol=None):
+        return (symbol in yields or yields == anything) if symbol else yields
+
     if func:
+        func.accepts = _accepts
+        func.yields = _yields
         return _worker(func)
 
-    def wrap(f):
-        return _worker(f, accepts, yields)
 
-    return wrap   
+    @wraps(worker)
+    def wrapped(f):
+        return worker(f, accepts, yields)
+
+    return wrapped   
 
 filter = worker
 
