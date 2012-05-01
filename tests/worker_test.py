@@ -69,6 +69,25 @@ class EnsureInformalTypesTest(unittest.TestCase):
 		assert [1,2] | origin() == [1,2]
 		assert state == [1, 2]
 
+	def testEnsureFurtherDecorateWhenBound(self):
+		@filter
+		def origin(items, bundle, b=None):
+			for i in items: yield i
+
+		state = [1]
+		def decorator(f):
+			def decorated(*a, **kw):
+				print a, kw
+				state.append(2)
+				return f(*a, **kw)
+			return decorated
+
+		worker = origin(b=1)
+		worker.decorate_with(decorator)
+
+		assert [1,2] | worker(None) == [1,2]
+		assert state == [1, 2]
+
 	def testAskFilterWhatItAcceptsAndYields(self):
 		@filter(accepts='filenames', yields='contents')
 		def f(items):
