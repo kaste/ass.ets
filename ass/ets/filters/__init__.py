@@ -142,6 +142,17 @@ def store_as(name):
 	"""The same as calling store(name=name)"""
 	return store(name=name)
 
+import glob as glob_
+@filter(accepts='filenames bundles', yields='filenames bundles')
+def glob(files, bundle):
+	for file in files:
+		if isinstance(file, ass.ets.Bundle):
+			yield file
+		else:
+			full_path = os.path.join(bundle.map_from, file)
+			for expanded in glob_.iglob(full_path) | relative_path(bundle, root=bundle.map_from):
+				yield expanded
+
 
 #
 

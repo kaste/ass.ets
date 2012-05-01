@@ -361,3 +361,8 @@ class FiltersTest(unittest.TestCase):
 
 		assert [css] | f.cleancss(None) | list == ['p{color:#aaa}']
 
+
+	def testGlob(self):
+		import os
+		bundle = ets.Bundle(map_from=os.path.dirname(__file__))
+		assert ['*.js'] | f.glob(bundle) | list == ['a.js', 'a1-43379278.js']
