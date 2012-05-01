@@ -10,6 +10,7 @@
 __version__ = "0.0.6"
 
 from bundles import Environment, Assets, bundle, Bundle, Manifest
+from filters import FilterError
 import filters as f
 from options import Option, Options, dict_getter
 from ass.ets.workers import worker, filter, Incompatible
