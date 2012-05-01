@@ -1,5 +1,6 @@
 import os
 import hashlib
+import urlparse
 
 import ass.ets 
 import ass.ets.bundles
@@ -18,10 +19,15 @@ def local_path(files, bundle):
 def remote_path(files, bundle):
 	"""Expects relative paths and yields urls by using bundle.map_to."""
 	for file in files:
-		if os.path.isabs(file):
-			yield file
-		else:
-			yield '/'.join([bundle.map_to, file]) 
+		# who needs this:
+		# if os.path.isabs(file):
+		# 	yield file
+		# else:
+
+		base = bundle.map_to
+		base += '/' if base[-1:] != '/' else ''
+
+		yield urlparse.urljoin(base, file) 
 
 @filter(accepts='filenames', yields='filenames')
 def translate_path(files, bundle):
