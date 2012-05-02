@@ -18,20 +18,6 @@ class Worker(_Worker):
 
         return super(Worker, self).__ror__(left)
 
-    def accepts(self, symbol=None):
-        return self.target.accepts(symbol)
-
-    def yields(self, symbol=None):
-        return self.target.yields(symbol)
-
-    @property
-    def __doc__(self):
-        return self.target.__doc__
-
-    @property
-    def __name__(self):
-        return self.target.__name__
-    
 def _get_kw_arguments(func):
     spec = inspect.getargspec(func)
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
@@ -53,7 +39,7 @@ def _worker(func):
         def apply(iter):
             return apply.original_function(iter, *a, **kw)
 
-        return Worker(apply)
+        return wraps(apply) (Worker(apply))
 
     bind.original_function = func
 
