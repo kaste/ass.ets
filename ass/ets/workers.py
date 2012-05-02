@@ -18,13 +18,16 @@ class Worker(_Worker):
 
         return super(Worker, self).__ror__(left)
 
-def _get_kw_arguments(func):
+def _get_positional_arguments(func):
     spec = inspect.getargspec(func)
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
-    return spec.args[-(args_with_defaults):]
+    return spec.args[:-args_with_defaults or None] 
 
 def _worker(func):
-    kw_args = _get_kw_arguments(func)
+    positional_args = _get_positional_arguments(func)
+    # when we have only the mandatory first argument which is the iterator on the left side
+    # allowing multiple binds would lead to an infinite bind-loop, we would never get a working worker
+    allow_multiple_binds = positional_args > 1
 
     @wraps(func)
     def bind(*a, **kw):
@@ -32,7 +35,7 @@ def _worker(func):
         # in python we can def f(a, b=1) => f(a=1, b=2)
         # t.i. a positional arg can be treated as if it were a kw argument
         # but this shouldn't trigger three-step, only e.g. f(b=2)
-        if kw and not a and not set(kw).difference(kw_args):
+        if allow_multiple_binds and kw and not a and not set(kw).intersection(positional_args):
             return wraps(bind) (partial(bind, *a, **kw))
 
         @wraps(bind)
