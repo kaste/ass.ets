@@ -7,7 +7,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = "0.0.6"
+__version__ = "0.1.0"
 
 from bundles import Environment, Assets, bundle, Bundle, Manifest
 from filters import FilterError
