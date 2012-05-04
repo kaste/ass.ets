@@ -167,25 +167,48 @@ def glob(files, bundle):
 
 # 
 
-
+from ass.ets.dicts import ordered
 
 def _get_pipe_for(ext, bundle):
 	return ass.ets.bundles.Pipe( bundle.filters[ext][bundle.mode] )
 
 @filter(accepts='filenames')
 def automatic(files, bundle):
-	by_ext = {}
-	ordered = []
+	"""Assumes a dict on bundle.filters, like so::
+
+		env = Environment(
+			filters={
+				'js': {
+					'development': [read, merge]
+				},
+				'css': {
+					'development': [read, merge, minify]
+				}
+			}
+		)
+		bundle = Bundle(
+			'jquery.js', 'styles.css',
+			env=env,
+			# partly overwrite the above defaults
+			filters={ 'js': { 'development': [read, merge, uglifyjs] } },
+			development=automatic
+		)
+
+	The automatic filter then chooses the correct filter chain by looking
+	at the extension of the file.
+
+	Alpha quality: Does not handle nested bundles.
+	"""
+	by_ext = ordered()
 	for file in files:
 		_, ext = os.path.splitext(file)
 		ext = ext[1:]
-		if not by_ext.has_key(ext):
-			by_ext[ext] = []
-			ordered.append(ext)
-		by_ext[ext].append(file)
+		try:
+			by_ext[ext].append(file)
+		except KeyError:
+			by_ext[ext] = [file]
 
-	for ext in ordered:
-		files = by_ext[ext]
+	for ext, files in by_ext.iteritems():
 		pipe = _get_pipe_for(ext, bundle)
 		for thing in pipe.apply(files, bundle):
 			yield thing
