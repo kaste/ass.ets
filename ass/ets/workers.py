@@ -10,38 +10,24 @@ anything = '*'
 class Worker(_Worker):
     def __ror__(self, left):
         try:
-            accepts = self.accepts()
-            yields  = left.yields()
-            if accepts != anything and yields != anything and yields not in accepts:
-                raise Incompatible('Incompatible left: %s to right: %s' % (yields, accepts))
+            yields = left.yields()
+            if not all( (self.accepts(symbol) for symbol in yields.split()) ):
+                raise Incompatible('Incompatible left: %s to right: %s' % (yields, self.accepts()))
         except AttributeError:
             pass
 
         return super(Worker, self).__ror__(left)
 
-    def accepts(self, symbol=None):
-        accepts = self.target.accepts #self.target.original_function.accepts
-        return (symbol in accepts or accepts == anything) if symbol else accepts
-
-    def yields(self, symbol=None):
-        yields = self.target.yields #self.target.original_function.yields
-        return (symbol in yields or yields == anything) if symbol else yields
-
-    @property
-    def __doc__(self):
-        return self.target.__doc__
-
-    @property
-    def __name__(self):
-        return self.target.__name__
-    
-def _get_kw_arguments(func):
+def _get_positional_arguments(func):
     spec = inspect.getargspec(func)
     args_with_defaults = spec.defaults and len(spec.defaults) or 0
-    return spec.args[-(args_with_defaults):]
+    return spec.args[:-args_with_defaults or None] 
 
-def _worker(func, accepts=anything, yields=anything):
-    kw_args = _get_kw_arguments(func)
+def _worker(func):
+    positional_args = _get_positional_arguments(func)
+    # when we have only the mandatory first argument which is the iterator on the left side
+    # allowing multiple binds would lead to an infinite bind-loop, we would never get a working worker
+    allow_multiple_binds = positional_args > 1
 
     @wraps(func)
     def bind(*a, **kw):
@@ -49,17 +35,15 @@ def _worker(func, accepts=anything, yields=anything):
         # in python we can def f(a, b=1) => f(a=1, b=2)
         # t.i. a positional arg can be treated as if it were a kw argument
         # but this shouldn't trigger three-step, only e.g. f(b=2)
-        if kw and not a and not set(kw).difference(kw_args):
+        if allow_multiple_binds and kw and not a and not set(kw).intersection(positional_args):
             return wraps(bind) (partial(bind, *a, **kw))
 
         @wraps(bind)
         def apply(iter):
             return apply.original_function(iter, *a, **kw)
 
-        return Worker(apply)
+        return wraps(apply) (Worker(apply))
 
-    bind.accepts = accepts
-    bind.yields  = yields
     bind.original_function = func
 
     def decorate_with(f):
@@ -70,13 +54,22 @@ def _worker(func, accepts=anything, yields=anything):
 
 
 def worker(func=None, accepts=anything, yields=anything):
+    def _accepts(symbol=None):
+        return (symbol in accepts or anything in [accepts, symbol]) if symbol else accepts
+    def _yields(symbol=None):
+        return (symbol in yields or yields == anything) if symbol else yields
+
     if func:
+        func.accepts = _accepts
+        func.yields = _yields
         return _worker(func)
 
-    def wrap(f):
-        return _worker(f, accepts, yields)
 
-    return wrap   
+    @wraps(worker)
+    def wrapped(f):
+        return worker(f, accepts, yields)
+
+    return wrapped   
 
 filter = worker
 
@@ -87,29 +80,4 @@ def discover_filters(module):
         
     """
     return [symbol for symbol, code in module.iteritems() if getattr(code, 'original_function', False)]
-
-class Pipe(list):
-    def __init__(self, seq):
-        if not hasattr(seq, '__iter__'):
-            seq = [seq]
-
-        list.__init__(self, seq)
-
-    def accepts(self, symbol=None):
-        accepts = self[0].accepts
-        return symbol in accepts if symbol else accepts
-
-    def yields(self, symbol=None):
-        yields = self[-1].yields
-        return symbol in yields if symbol else yields
-
-    def prepend(self, worker):
-        self.insert(0, worker)
-
-    def apply(self, iter, *a, **kw):
-        p = iter
-        for worker in self:
-            p |= worker(*a, **kw)
-
-        return p
 

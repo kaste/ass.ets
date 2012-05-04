@@ -1,7 +1,8 @@
 import unittest2 as unittest
 import pytest; expectedFailure = pytest.mark.xfail
 
-from ass.ets.workers import filter, Incompatible, Pipe, discover_filters
+from ass.ets.workers import filter, Incompatible, discover_filters
+from ass.ets.bundles import Pipe
 
 @filter(yields='items')
 def yields_items(items):
@@ -93,8 +94,8 @@ class EnsureInformalTypesTest(unittest.TestCase):
 		def f(items):
 			for i in items: yield i
 
-		assert f.accepts == 'filenames'
-		assert f.yields == 'contents'
+		assert f.accepts() == 'filenames'
+		assert f.yields() == 'contents'
 
 	def testAskActualWorkerWhatHeAcceptsOrYields(self):
 		@filter(accepts='filenames', yields='contents')
