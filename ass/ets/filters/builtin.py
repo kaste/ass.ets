@@ -105,10 +105,10 @@ def read(items, bundle):
 	"""
 	for item in items:
 		if isinstance(item, ass.ets.Bundle):
-			bundle = item
-			iterator = bundle.apply()
+			nested_bundle = item
+			iterator = nested_bundle.apply()
 			if not iterator.yields('contents'):
-				raise Incompatible("%r must yield 'contents', actually yields %r" % (bundle, iterator.yields()))
+				raise Incompatible("%r must yield 'contents', actually yields %r" % (nested_bundle, iterator.yields()))
 			for content in iterator:
 				yield content
 		else:
