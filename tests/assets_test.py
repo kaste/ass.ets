@@ -223,7 +223,20 @@ class BundleTest(unittest.TestCase):
 						mode='development', 
 						development=ets.f.as_is)
 
-		assert bundle.urls() == ['/static/a.js', '/static/b.js']
+		assert bundle.urls() | list == ['/static/a.js', '/static/b.js']
+
+	def testUrlsWithNestedBundlesAndDifferentMapping(self):
+
+		nested_bundle = ets.Bundle('static/a.js', 
+			map_from='/', map_to='/',
+			development=ets.f.echo)
+
+		bundle = ets.Bundle(nested_bundle, 
+			map_from='/static', map_to='/static',
+			mode='development',
+			development=ets.f.as_is)
+
+		assert bundle.urls() | list == ['/static/a.js']
 
 	def testBuildWithNestedBundles(self):
 		import __builtin__, pickle

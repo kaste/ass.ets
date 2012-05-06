@@ -56,15 +56,15 @@ def as_is(files, bundle):
 	"""
 	for file in files:
 		if isinstance(file, ass.ets.Bundle):
-			bundle = file
-			iterator = bundle.apply()
+			nested_bundle = file
+			iterator = nested_bundle.apply()
 			if not iterator.yields('filenames'):
-				raise Incompatible("%r must yield 'filenames', actually yields %r" % (bundle, iterator.yields()))
+				raise Incompatible("%r must yield 'filenames', actually yields %r" % (nested_bundle, iterator.yields()))
 			# handling nested bundles still feels hacky
 			# assume the nested bundle yields relative paths with a root = subbundle.map_from
 			# first localize, so we have an absolute path
 			# then translate that path again to a relative path with the root = bundle.map_from
-			for f in iterator | local_path(file) | relative_path(bundle):
+			for f in iterator | local_path(nested_bundle) | relative_path(bundle):
 				yield f
 		else:
 			yield file
