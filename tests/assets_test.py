@@ -112,7 +112,7 @@ class BundleTest(unittest.TestCase):
 						mode='development',
 						development=ets.f.as_is)
 
-		assert bundle.urls() == ['/static/a.js', '/static/b.js']
+		assert bundle.urls() | list == ['/static/a.js', '/static/b.js']
 
 	def testGivesUrlsFromManifest(self):
 		bundle = ets.Bundle(name='jslib', 
@@ -122,7 +122,7 @@ class BundleTest(unittest.TestCase):
 						manifest=dict(jslib=['generated.js']),
 						development=ets.f.use_manifest)
 
-		assert bundle.urls() == ['/static/generated.js']
+		assert bundle.urls() | list == ['/static/generated.js']
 
 
 	def testMergeFiles(self):
