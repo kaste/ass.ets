@@ -19,11 +19,6 @@ def local_path(files, bundle):
 def remote_path(files, bundle):
 	"""Expects relative paths and yields urls by using bundle.map_to."""
 	for file in files:
-		# who needs this:
-		# if os.path.isabs(file):
-		# 	yield file
-		# else:
-
 		base = bundle.map_to
 		base += '/' if base[-1:] != '/' else ''
 
